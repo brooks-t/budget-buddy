@@ -16,17 +16,14 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () =>
-      import('./pages/dashboard/dashboard.component').then(
-        (m) => m.DashboardComponent
-      ),
+      import('./pages/dashboard/dashboard').then((m) => m.Dashboard),
     title: 'Dashboard - Budget Buddy',
   },
 
   // Income - Track and manage income sources
   {
     path: 'income',
-    loadComponent: () =>
-      import('./pages/income/income.component').then((m) => m.IncomeComponent),
+    loadComponent: () => import('./pages/income/income').then((m) => m.Income),
     title: 'Income - Budget Buddy',
   },
 
@@ -34,17 +31,14 @@ export const routes: Routes = [
   {
     path: 'expenses',
     loadComponent: () =>
-      import('./pages/expenses/expenses.component').then(
-        (m) => m.ExpensesComponent
-      ),
+      import('./pages/expenses/expenses').then((m) => m.Expenses),
     title: 'Expenses - Budget Buddy',
   },
 
   // Goals - Set and monitor financial goals
   {
     path: 'goals',
-    loadComponent: () =>
-      import('./pages/goals/goals.component').then((m) => m.GoalsComponent),
+    loadComponent: () => import('./pages/goals/goals').then((m) => m.Goals),
     title: 'Goals - Budget Buddy',
   },
 
@@ -52,9 +46,7 @@ export const routes: Routes = [
   {
     path: 'reports',
     loadComponent: () =>
-      import('./pages/reports/reports.component').then(
-        (m) => m.ReportsComponent
-      ),
+      import('./pages/reports/reports').then((m) => m.Reports),
     title: 'Reports - Budget Buddy',
   },
 
