@@ -4,7 +4,7 @@
 .income-container {
   padding: 1rem;
   max-width: 100%;
-  
+
   /* Smooth page load animation */
   animation: slideInUp 0.6s ease-out;
 }
@@ -59,7 +59,7 @@
 
   /* Add subtle background pattern */
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     right: 0;
@@ -81,7 +81,7 @@
 
 .summary-item {
   text-align: center;
-  
+
   .summary-label {
     display: block;
     font-size: 0.9rem;
@@ -90,13 +90,13 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-  
+
   .summary-amount {
     display: block;
     font-size: 2rem;
     font-weight: 700;
   }
-  
+
   .summary-count {
     display: block;
     font-size: 2rem;
@@ -137,7 +137,7 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   background: white;
-  
+
   /* Focus state with green theme for income */
   &:focus {
     outline: none;
@@ -145,18 +145,18 @@
     box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
     transform: translateY(-2px);
   }
-  
+
   /* Hover state for better UX */
   &:hover {
     border-color: #cbd5e0;
   }
-  
+
   /* Invalid state styling */
   &.ng-invalid.ng-touched {
     border-color: #f56565;
     box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
   }
-  
+
   /* Valid state styling with green theme */
   &.ng-valid.ng-touched {
     border-color: #48bb78;
@@ -172,10 +172,10 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  
+
   /* Add error icon */
   &::before {
-    content: '⚠️';
+    content: "⚠️";
     font-size: 0.75rem;
   }
 }
@@ -185,7 +185,7 @@
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
-  
+
   .btn {
     display: flex;
     align-items: center;
@@ -194,20 +194,20 @@
     font-weight: 600;
     border-radius: 8px;
     transition: all 0.3s ease;
-    
+
     /* Enhanced hover effects */
     &:hover:not(:disabled) {
       transform: translateY(-3px);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
-    
+
     /* Disabled state for submit button */
     &:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
     }
-    
+
     span {
       font-size: 1.1rem;
     }
@@ -217,7 +217,7 @@
 /* Filters Section */
 .filters-section {
   margin-bottom: 2rem;
-  
+
   h2 {
     color: #2d3748;
     margin-bottom: 1.5rem;
@@ -237,7 +237,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  
+
   label {
     font-weight: 600;
     color: #4a5568;
@@ -270,14 +270,14 @@
   border-bottom: 1px solid #edf2f7;
   transition: all 0.3s ease;
   position: relative;
-  
+
   /* Hover effect with green theme for income */
   &:hover {
     background: #f0fff4;
     transform: translateX(8px);
     border-left: 4px solid #48bb78;
   }
-  
+
   /* Remove border from last item */
   &:last-child {
     border-bottom: none;
@@ -372,7 +372,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   color: #c53030;
-  
+
   &:hover {
     background: #f56565;
     border-color: #e53e3e;
@@ -380,7 +380,7 @@
     transform: scale(1.1);
     box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
   }
-  
+
   &:active {
     transform: scale(0.95);
   }
@@ -391,16 +391,16 @@
   text-align: center;
   padding: 3rem 2rem;
   color: #718096;
-  
+
   p {
     font-size: 1.1rem;
     margin-bottom: 1rem;
-    
+
     &:last-of-type {
       margin-bottom: 2rem;
     }
   }
-  
+
   .btn {
     margin: 0 auto;
   }
@@ -411,57 +411,57 @@
   .income-container {
     padding: 0.5rem;
   }
-  
+
   .page-header h1 {
     font-size: 2rem;
   }
-  
+
   .summary-content {
     flex-direction: column;
     gap: 1.5rem;
   }
-  
+
   .filters-row {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .form-actions {
     flex-direction: column;
-    
+
     .btn {
       justify-content: center;
     }
   }
-  
+
   .income-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
-    
+
     &:hover {
       transform: none;
       border-left: none;
     }
   }
-  
+
   .income-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
     width: 100%;
   }
-  
+
   .income-badges {
     flex-direction: row;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .income-meta {
     width: 100%;
   }
-  
+
   .income-actions {
     margin-left: 0;
     align-self: flex-end;
@@ -473,32 +473,32 @@
   .page-header h1 {
     font-size: 1.8rem;
   }
-  
+
   .summary-item {
     .summary-amount,
     .summary-count {
       font-size: 1.5rem;
     }
   }
-  
+
   .form-control {
     padding: 0.75rem;
     font-size: 0.95rem;
   }
-  
+
   .income-description {
     font-size: 1rem;
   }
-  
+
   .income-amount {
     font-size: 1.1rem;
   }
-  
+
   .btn-delete {
     padding: 0.5rem;
     font-size: 1rem;
   }
-  
+
   .income-badges {
     flex-direction: column;
     align-items: flex-start;
