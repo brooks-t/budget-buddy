@@ -1,41 +1,33 @@
 <!-- Budget Buddy - Personal Finance Management -->
 <main class="app-container">
-  <!-- Header Section -->
+  <!-- Header Section with Navigation -->
   <header class="app-header">
     <div class="header-content">
-      <h1 class="app-title">💰 Budget Buddy</h1>
-      <p class="app-subtitle">Your Personal Finance Companion</p>
+      <div class="header-top">
+        <h1 class="app-title">💰 Budget Buddy</h1>
+        <p class="app-subtitle">Your Personal Finance Companion</p>
+      </div>
+
+      <!-- Main Navigation Menu -->
+      <nav class="main-navigation">
+        <ul class="nav-list">
+          <!-- Loop through our navigation items and create links -->
+          <!-- routerLink: creates navigation links -->
+          <!-- routerLinkActive: adds 'active' class when this route is current -->
+          <li class="nav-item" *ngFor="let item of navigationItems">
+            <a [routerLink]="item.path" routerLinkActive="active" class="nav-link">
+              <span class="nav-icon">{{ item.icon }}</span>
+              <span class="nav-label">{{ item.label }}</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
   </header>
 
   <!-- Main Content Area -->
+  <!-- This is where our different page components will be displayed -->
   <div class="main-content">
-    <div class="welcome-section">
-      <h2>Welcome to Budget Buddy!</h2>
-      <p>Take control of your finances with our easy-to-use budgeting tools.</p>
-
-      <!-- Feature Preview Cards -->
-      <div class="feature-grid">
-        <div class="feature-card">
-          <h3>📊 Track Expenses</h3>
-          <p>Monitor your spending across different categories</p>
-        </div>
-        <div class="feature-card">
-          <h3>💵 Manage Income</h3>
-          <p>Keep track of all your income sources</p>
-        </div>
-        <div class="feature-card">
-          <h3>🎯 Set Goals</h3>
-          <p>Create and achieve your financial objectives</p>
-        </div>
-        <div class="feature-card">
-          <h3>📈 View Reports</h3>
-          <p>Get insights into your financial patterns</p>
-        </div>
-      </div>
-    </div>
+    <router-outlet />
   </div>
-
-  <!-- Router outlet will display different pages as we build them -->
-  <router-outlet />
 </main>
