@@ -1,0 +1,473 @@
+/* Expenses Component Styles - Professional form design and data management */
+
+/* Main container for the expenses page */
+.expenses-container {
+  padding: 1rem;
+  max-width: 100%;
+
+  /* Smooth page load animation */
+  animation: slideIn 0.6s ease-out;
+}
+
+/* Slide-in animation for smooth page transitions */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page Header Section */
+.page-header {
+  margin-bottom: 2rem;
+  text-align: center;
+
+  h1 {
+    font-size: 2.5rem;
+    color: #2d3748;
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  p {
+    color: #666;
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 400;
+  }
+}
+
+/* Summary Section - Shows totals at the top */
+.summary-section {
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  position: relative;
+  overflow: hidden;
+
+  /* Add subtle background pattern */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+  }
+}
+
+.summary-content {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.summary-item {
+  text-align: center;
+
+  .summary-label {
+    display: block;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .summary-amount {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  .summary-count {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+}
+
+/* Add New Expense Form Section */
+.add-expense-section {
+  margin-bottom: 2rem;
+}
+
+.expense-form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* Form Groups - Each input field container */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Form Controls - Input, select styling */
+.form-control {
+  padding: 0.875rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+
+  /* Focus state for better accessibility */
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Hover state for better UX */
+  &:hover {
+    border-color: #cbd5e0;
+  }
+
+  /* Invalid state styling */
+  &.ng-invalid.ng-touched {
+    border-color: #f56565;
+    box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
+  }
+
+  /* Valid state styling */
+  &.ng-valid.ng-touched {
+    border-color: #48bb78;
+  }
+}
+
+/* Error Messages for Form Validation */
+.error-message {
+  color: #f56565;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  /* Add error icon */
+  &::before {
+    content: "⚠️";
+    font-size: 0.75rem;
+  }
+}
+
+/* Form Action Buttons */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+
+    /* Enhanced hover effects */
+    &:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Disabled state for submit button */
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    span {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+/* Filters Section */
+.filters-section {
+  margin-bottom: 2rem;
+
+  h2 {
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+}
+
+.filters-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  align-items: end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.9rem;
+  }
+}
+
+/* Expenses List Section */
+.expenses-list-section {
+  h2 {
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+}
+
+.expenses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Individual Expense Item */
+.expense-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #edf2f7;
+  transition: all 0.3s ease;
+  position: relative;
+
+  /* Hover effect for expense items */
+  &:hover {
+    background: #f7fafc;
+    transform: translateX(8px);
+    border-left: 4px solid #667eea;
+  }
+
+  /* Remove border from last item */
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+/* Expense Information Container */
+.expense-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.expense-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.expense-description {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+/* Category Badge with Dynamic Colors */
+.expense-category {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.expense-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expense-date {
+  color: #718096;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.expense-amount {
+  color: #f56565;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+/* Expense Actions - Delete Button */
+.expense-actions {
+  margin-left: 1rem;
+}
+
+.btn-delete {
+  background: #fed7d7;
+  border: 2px solid #feb2b2;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #c53030;
+
+  &:hover {
+    background: #f56565;
+    border-color: #e53e3e;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+/* No Expenses Messages */
+.no-expenses {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #718096;
+
+  p {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+
+    &:last-of-type {
+      margin-bottom: 2rem;
+    }
+  }
+
+  .btn {
+    margin: 0 auto;
+  }
+}
+
+/* Responsive Design for Tablets */
+@media (max-width: 768px) {
+  .expenses-container {
+    padding: 0.5rem;
+  }
+
+  .page-header h1 {
+    font-size: 2rem;
+  }
+
+  .summary-content {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .filters-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+
+    .btn {
+      justify-content: center;
+    }
+  }
+
+  .expense-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+
+    &:hover {
+      transform: none;
+      border-left: none;
+    }
+  }
+
+  .expense-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .expense-meta {
+    width: 100%;
+  }
+
+  .expense-actions {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+}
+
+/* Responsive Design for Mobile */
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .summary-item {
+    .summary-amount,
+    .summary-count {
+      font-size: 1.5rem;
+    }
+  }
+
+  .form-control {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .expense-description {
+    font-size: 1rem;
+  }
+
+  .expense-amount {
+    font-size: 1.1rem;
+  }
+
+  .btn-delete {
+    padding: 0.5rem;
+    font-size: 1rem;
+  }
+}
