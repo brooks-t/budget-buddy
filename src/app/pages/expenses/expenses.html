@@ -1,1 +1,183 @@
-<p>expenses works!</p>
+<!-- Expenses Template - Demonstrates Angular forms and data management -->
+<div class="expenses-container">
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>Expense Tracking</h1>
+    <p>Manage and categorize your spending to stay on budget.</p>
+  </header>
+
+  <!-- Expense Summary Card -->
+  <section class="summary-section">
+    <div class="card summary-card">
+      <div class="summary-content">
+        <div class="summary-item">
+          <span class="summary-label">Total Expenses</span>
+          <span class="summary-amount">{{ totalExpenses | currency }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Transactions</span>
+          <span class="summary-count">{{ filteredExpenses.length }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Add New Expense Form -->
+  <section class="add-expense-section">
+    <div class="card">
+      <h2>Add New Expense</h2>
+
+      <!-- Template-driven form using ngModel for two-way data binding -->
+      <form class="expense-form" (ngSubmit)="addExpense()" #expenseForm="ngForm">
+
+        <!-- Description Input -->
+        <div class="form-group">
+          <label for="description">Description</label>
+          <input type="text" id="description" name="description" class="form-control"
+            placeholder="e.g., Grocery shopping, Coffee, Gas" [(ngModel)]="newExpense.description" required
+            #description="ngModel">
+
+          <!-- Validation message for description -->
+          <div class="error-message" *ngIf="description.invalid && description.touched">
+            Description is required
+          </div>
+        </div>
+
+        <!-- Amount Input -->
+        <div class="form-group">
+          <label for="amount">Amount ($)</label>
+          <input type="number" id="amount" name="amount" class="form-control" placeholder="0.00" step="0.01" min="0.01"
+            [(ngModel)]="newExpense.amount" required #amount="ngModel">
+
+          <!-- Validation message for amount -->
+          <div class="error-message" *ngIf="amount.invalid && amount.touched">
+            Please enter a valid amount (greater than $0.00)
+          </div>
+        </div>
+
+        <!-- Category Selection -->
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" name="category" class="form-control" [(ngModel)]="newExpense.category" required
+            #category="ngModel">
+            <option value="">Choose a category...</option>
+            <!-- Loop through available categories -->
+            <option *ngFor="let cat of expenseCategories" [value]="cat">
+              {{ cat }}
+            </option>
+          </select>
+
+          <!-- Validation message for category -->
+          <div class="error-message" *ngIf="category.invalid && category.touched">
+            Please select a category
+          </div>
+        </div>
+
+        <!-- Date Input -->
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input type="date" id="date" name="date" class="form-control" [(ngModel)]="newExpense.date" required
+            #date="ngModel">
+
+          <!-- Validation message for date -->
+          <div class="error-message" *ngIf="date.invalid && date.touched">
+            Please select a date
+          </div>
+        </div>
+
+        <!-- Form Action Buttons -->
+        <div class="form-actions">
+          <!-- Submit button - disabled if form is invalid -->
+          <button type="submit" class="btn btn-primary" [disabled]="expenseForm.invalid">
+            <span>💾</span> Add Expense
+          </button>
+
+          <!-- Reset button -->
+          <button type="button" class="btn btn-secondary" (click)="resetForm()">
+            <span>🔄</span> Clear Form
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Filters and Search Section -->
+  <section class="filters-section">
+    <div class="card">
+      <h2>Filter Expenses</h2>
+
+      <div class="filters-row">
+        <!-- Search Input -->
+        <div class="filter-group">
+          <label for="search">Search</label>
+          <input type="text" id="search" class="form-control" placeholder="Search by description or category..."
+            [(ngModel)]="searchTerm">
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-group">
+          <label for="categoryFilter">Filter by Category</label>
+          <select id="categoryFilter" class="form-control" [(ngModel)]="selectedCategory">
+            <option value="All">All Categories</option>
+            <option *ngFor="let cat of expenseCategories" [value]="cat">
+              {{ cat }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Expenses List Section -->
+  <section class="expenses-list-section">
+    <div class="card">
+      <h2>Your Expenses</h2>
+
+      <!-- Show expenses if any exist -->
+      <div class="expenses-list" *ngIf="filteredExpenses.length > 0">
+        <!-- Loop through filtered expenses -->
+        <div class="expense-item" *ngFor="let expense of filteredExpenses">
+
+          <!-- Expense Details -->
+          <div class="expense-info">
+            <div class="expense-header">
+              <h3 class="expense-description">{{ expense.description }}</h3>
+              <span class="expense-category" [style.background-color]="getCategoryColor(expense.category)"
+                [style.color]="'white'">
+                {{ expense.category }}
+              </span>
+            </div>
+
+            <div class="expense-meta">
+              <span class="expense-date">{{ expense.date | date:'mediumDate' }}</span>
+              <span class="expense-amount">{{ expense.amount | currency }}</span>
+            </div>
+          </div>
+
+          <!-- Delete Button -->
+          <div class="expense-actions">
+            <button class="btn-delete" (click)="deleteExpense(expense.id)" title="Delete expense">
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Show message when no expenses match filters -->
+      <div class="no-expenses" *ngIf="filteredExpenses.length === 0 && expenses.length > 0">
+        <p>No expenses match your current filters.</p>
+        <button class="btn btn-secondary" (click)="searchTerm = ''; selectedCategory = 'All'">
+          Clear Filters
+        </button>
+      </div>
+
+      <!-- Show message when no expenses exist at all -->
+      <div class="no-expenses" *ngIf="expenses.length === 0">
+        <p>You haven't added any expenses yet.</p>
+        <p>Use the form above to track your first expense!</p>
+      </div>
+    </div>
+  </section>
+
+</div>
