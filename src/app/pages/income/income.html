@@ -1,1 +1,218 @@
-<p>income works!</p>
+<!-- Income Template - Demonstrates form patterns and income-specific features -->
+<div class="income-container">
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>Income Management</h1>
+    <p>Track and manage your income sources to optimize your finances.</p>
+  </header>
+
+  <!-- Income Summary Card -->
+  <section class="summary-section">
+    <div class="card summary-card">
+      <div class="summary-content">
+        <div class="summary-item">
+          <span class="summary-label">Total Income</span>
+          <span class="summary-amount">{{ totalIncome | currency }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Income Sources</span>
+          <span class="summary-count">{{ filteredIncome.length }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Add New Income Form -->
+  <section class="add-income-section">
+    <div class="card">
+      <h2>Add New Income</h2>
+
+      <!-- Template-driven form using ngModel for two-way data binding -->
+      <form class="income-form" (ngSubmit)="addIncome()" #incomeForm="ngForm">
+
+        <!-- Description Input -->
+        <div class="form-group">
+          <label for="description">Description</label>
+          <input type="text" id="description" name="description" class="form-control"
+            placeholder="e.g., Monthly Salary, Freelance Project, Dividend Payment" [(ngModel)]="newIncome.description"
+            required #description="ngModel">
+
+          <!-- Validation message for description -->
+          <div class="error-message" *ngIf="description.invalid && description.touched">
+            Description is required
+          </div>
+        </div>
+
+        <!-- Amount Input -->
+        <div class="form-group">
+          <label for="amount">Amount ($)</label>
+          <input type="number" id="amount" name="amount" class="form-control" placeholder="0.00" step="0.01" min="0.01"
+            [(ngModel)]="newIncome.amount" required #amount="ngModel">
+
+          <!-- Validation message for amount -->
+          <div class="error-message" *ngIf="amount.invalid && amount.touched">
+            Please enter a valid amount (greater than $0.00)
+          </div>
+        </div>
+
+        <!-- Source Selection (similar to category but for income types) -->
+        <div class="form-group">
+          <label for="source">Income Source</label>
+          <select id="source" name="source" class="form-control" [(ngModel)]="newIncome.source" required
+            #source="ngModel">
+            <option value="">Choose an income source...</option>
+            <!-- Loop through available income sources -->
+            <option *ngFor="let sourceOption of incomeSources" [value]="sourceOption">
+              {{ sourceOption }}
+            </option>
+          </select>
+
+          <!-- Validation message for source -->
+          <div class="error-message" *ngIf="source.invalid && source.touched">
+            Please select an income source
+          </div>
+        </div>
+
+        <!-- Frequency Selection (unique to income component) -->
+        <div class="form-group">
+          <label for="frequency">Frequency</label>
+          <select id="frequency" name="frequency" class="form-control" [(ngModel)]="newIncome.frequency" required
+            #frequency="ngModel">
+            <!-- Loop through frequency options using value and label -->
+            <option *ngFor="let freq of frequencyOptions" [value]="freq.value">
+              {{ freq.label }}
+            </option>
+          </select>
+
+          <!-- Validation message for frequency -->
+          <div class="error-message" *ngIf="frequency.invalid && frequency.touched">
+            Please select a frequency
+          </div>
+        </div>
+
+        <!-- Date Input -->
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input type="date" id="date" name="date" class="form-control" [(ngModel)]="newIncome.date" required
+            #date="ngModel">
+
+          <!-- Validation message for date -->
+          <div class="error-message" *ngIf="date.invalid && date.touched">
+            Please select a date
+          </div>
+        </div>
+
+        <!-- Form Action Buttons -->
+        <div class="form-actions">
+          <!-- Submit button - disabled if form is invalid -->
+          <button type="submit" class="btn btn-primary" [disabled]="incomeForm.invalid">
+            <span>💰</span> Add Income
+          </button>
+
+          <!-- Reset button -->
+          <button type="button" class="btn btn-secondary" (click)="resetForm()">
+            <span>🔄</span> Clear Form
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Filters and Search Section -->
+  <section class="filters-section">
+    <div class="card">
+      <h2>Filter Income</h2>
+
+      <div class="filters-row">
+        <!-- Search Input -->
+        <div class="filter-group">
+          <label for="search">Search</label>
+          <input type="text" id="search" class="form-control" placeholder="Search by description or source..."
+            [(ngModel)]="searchTerm">
+        </div>
+
+        <!-- Source Filter -->
+        <div class="filter-group">
+          <label for="sourceFilter">Filter by Source</label>
+          <select id="sourceFilter" class="form-control" [(ngModel)]="selectedSource">
+            <option value="All">All Sources</option>
+            <option *ngFor="let sourceOption of incomeSources" [value]="sourceOption">
+              {{ sourceOption }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Frequency Filter (unique to income component) -->
+        <div class="filter-group">
+          <label for="frequencyFilter">Filter by Frequency</label>
+          <select id="frequencyFilter" class="form-control" [(ngModel)]="selectedFrequency">
+            <option value="All">All Frequencies</option>
+            <option *ngFor="let freq of frequencyOptions" [value]="freq.value">
+              {{ freq.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Income List Section -->
+  <section class="income-list-section">
+    <div class="card">
+      <h2>Your Income Sources</h2>
+
+      <!-- Show income entries if any exist -->
+      <div class="income-list" *ngIf="filteredIncome.length > 0">
+        <!-- Loop through filtered income entries -->
+        <div class="income-item" *ngFor="let income of filteredIncome">
+
+          <!-- Income Details -->
+          <div class="income-info">
+            <div class="income-header">
+              <h3 class="income-description">{{ income.description }}</h3>
+              <div class="income-badges">
+                <!-- Source badge with dynamic color -->
+                <span class="income-source" [style.background-color]="getSourceColor(income.source)"
+                  [style.color]="'white'">
+                  {{ income.source }}
+                </span>
+                <!-- Frequency badge -->
+                <span class="income-frequency">
+                  {{ getFrequencyDisplay(income.frequency) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="income-meta">
+              <span class="income-date">{{ income.date | date:'mediumDate' }}</span>
+              <span class="income-amount">{{ income.amount | currency }}</span>
+            </div>
+          </div>
+
+          <!-- Delete Button -->
+          <div class="income-actions">
+            <button class="btn-delete" (click)="deleteIncome(income.id)" title="Delete income entry">
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Show message when no income matches filters -->
+      <div class="no-income" *ngIf="filteredIncome.length === 0 && incomeEntries.length > 0">
+        <p>No income sources match your current filters.</p>
+        <button class="btn btn-secondary" (click)="searchTerm = ''; selectedSource = 'All'; selectedFrequency = 'All'">
+          Clear Filters
+        </button>
+      </div>
+
+      <!-- Show message when no income exists at all -->
+      <div class="no-income" *ngIf="incomeEntries.length === 0">
+        <p>You haven't added any income sources yet.</p>
+        <p>Use the form above to track your first income!</p>
+      </div>
+    </div>
+  </section>
+
+</div>
