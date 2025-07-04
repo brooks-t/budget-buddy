@@ -1,0 +1,430 @@
+/* Dashboard Component Styles - Modern, responsive design for Budget Buddy */
+
+/* Main container for the dashboard */
+.dashboard-container {
+  padding: 1rem;
+  max-width: 100%;
+
+  /* Smooth animations for when content loads */
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+/* Fade-in animation for smooth loading */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page Header Section */
+.page-header {
+  margin-bottom: 3rem;
+  text-align: center;
+
+  h1 {
+    font-size: 2.5rem;
+    color: #2d3748;
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  p {
+    color: #666;
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 400;
+  }
+}
+
+/* Financial Summary Section */
+.summary-section {
+  margin-bottom: 3rem;
+
+  h2 {
+    color: #2d3748;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-align: center;
+  }
+}
+
+/* Summary Cards Grid Layout */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Individual Summary Card Styling */
+.summary-card {
+  padding: 2rem;
+  border-left: 4px solid;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  /* Hover effects for interactivity */
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Add subtle background pattern */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+  }
+
+  /* Color coding for different card types */
+  &.income-card {
+    border-left-color: #48bb78; /* Green for income */
+  }
+
+  &.expense-card {
+    border-left-color: #f56565; /* Red for expenses */
+  }
+
+  &.savings-card {
+    border-left-color: #4299e1; /* Blue for savings */
+  }
+}
+
+/* Card Header with Icon and Title */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+
+  .card-icon {
+    font-size: 2rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  h3 {
+    margin: 0;
+    color: #4a5568;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+}
+
+/* Large Amount Display */
+.card-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
+
+  /* Color classes for positive/negative amounts */
+  &.positive {
+    color: #48bb78;
+  }
+
+  &.negative {
+    color: #f56565;
+  }
+}
+
+/* Subtitle under amount */
+.card-subtitle {
+  color: #718096;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
+}
+
+/* Quick Actions Section */
+.quick-actions-section {
+  margin-bottom: 3rem;
+
+  h2 {
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+}
+
+/* Action Buttons Layout */
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+
+    .btn-icon {
+      font-size: 1.3rem;
+    }
+
+    /* Enhanced hover effects */
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+      transform: translateY(-1px);
+    }
+  }
+}
+
+/* Recent Transactions Section */
+.transactions-section {
+  h2 {
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+}
+
+/* Transactions Card Container */
+.transactions-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Transaction List */
+.transaction-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Individual Transaction Item */
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #edf2f7;
+  transition: all 0.2s ease;
+  position: relative;
+
+  /* Hover effect for transaction items */
+  &:hover {
+    background: #f7fafc;
+    transform: translateX(8px);
+  }
+
+  /* Remove border from last item */
+  &:last-child {
+    border-bottom: none;
+  }
+
+  /* Color indicators for transaction types */
+  &.income-item {
+    border-left: 3px solid #48bb78;
+  }
+
+  &.expense-item {
+    border-left: 3px solid #f56565;
+  }
+}
+
+/* Left side of transaction (icon and details) */
+.transaction-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+/* Transaction Icon */
+.transaction-icon {
+  font-size: 1.5rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 50px;
+  text-align: center;
+}
+
+/* Transaction Details Container */
+.transaction-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0; /* Allows text to truncate */
+}
+
+/* Transaction Description */
+.transaction-description {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Transaction Meta Information */
+.transaction-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #718096;
+}
+
+.transaction-category {
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  background: #edf2f7;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.transaction-date {
+  font-weight: 400;
+}
+
+/* Transaction Amount */
+.transaction-amount {
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-align: right;
+  min-width: 120px;
+
+  &.positive {
+    color: #48bb78;
+  }
+
+  &.negative {
+    color: #f56565;
+  }
+}
+
+/* No Transactions Message */
+.no-transactions {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #718096;
+
+  p {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn {
+    margin: 0 auto;
+  }
+}
+
+/* Responsive Design for Mobile Devices */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 0.5rem;
+  }
+
+  .page-header h1 {
+    font-size: 2rem;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .card-amount {
+    font-size: 2rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+
+    .btn {
+      justify-content: center;
+      width: 100%;
+    }
+  }
+
+  .transaction-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+
+    &:hover {
+      transform: none;
+    }
+  }
+
+  .transaction-left {
+    width: 100%;
+  }
+
+  .transaction-amount {
+    align-self: flex-end;
+    min-width: auto;
+  }
+
+  .transaction-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .summary-cards {
+    gap: 1rem;
+  }
+
+  .summary-card {
+    padding: 1.5rem;
+  }
+
+  .card-amount {
+    font-size: 1.8rem;
+  }
+
+  .transaction-details {
+    min-width: 0;
+  }
+
+  .transaction-description {
+    font-size: 0.9rem;
+  }
+}
