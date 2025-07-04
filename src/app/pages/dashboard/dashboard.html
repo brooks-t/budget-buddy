@@ -1,1 +1,110 @@
-<p>dashboard works!</p>
+<!-- Dashboard Template - This demonstrates Angular's template syntax -->
+<div class="dashboard-container">
+
+  <!-- Page Header Section -->
+  <header class="page-header">
+    <h1>Financial Dashboard</h1>
+    <p>Welcome back! Here's your current financial overview.</p>
+  </header>
+
+  <!-- Financial Summary Cards - Shows data binding and computed properties -->
+  <section class="summary-section">
+    <h2>Financial Summary</h2>
+
+    <div class="summary-cards">
+      <!-- Income Card -->
+      <div class="card summary-card income-card">
+        <div class="card-header">
+          <span class="card-icon">💵</span>
+          <h3>Total Income</h3>
+        </div>
+        <!-- Data binding with pipe for currency formatting -->
+        <div class="card-amount positive">{{ totalIncome | currency }}</div>
+        <div class="card-subtitle">This month</div>
+      </div>
+
+      <!-- Expenses Card -->
+      <div class="card summary-card expense-card">
+        <div class="card-header">
+          <span class="card-icon">💳</span>
+          <h3>Total Expenses</h3>
+        </div>
+        <div class="card-amount negative">{{ totalExpenses | currency }}</div>
+        <div class="card-subtitle">This month</div>
+      </div>
+
+      <!-- Savings Card - Shows computed property -->
+      <div class="card summary-card savings-card">
+        <div class="card-header">
+          <span class="card-icon">💰</span>
+          <h3>Net Savings</h3>
+        </div>
+        <!-- Uses our computed property getter -->
+        <div class="card-amount" [class]="getTransactionClass(totalSavings)">
+          {{ totalSavings | currency }}
+        </div>
+        <div class="card-subtitle">This month</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions Section - Shows event binding -->
+  <section class="quick-actions-section">
+    <h2>Quick Actions</h2>
+    <div class="action-buttons">
+      <!-- Event binding with (click) - calls our component methods -->
+      <button class="btn btn-primary" (click)="onAddIncome()">
+        <span class="btn-icon">➕</span>
+        Add Income
+      </button>
+
+      <button class="btn btn-secondary" (click)="onAddExpense()">
+        <span class="btn-icon">➖</span>
+        Add Expense
+      </button>
+
+      <button class="btn btn-secondary" (click)="onViewReports()">
+        <span class="btn-icon">📊</span>
+        View Reports
+      </button>
+    </div>
+  </section>
+
+  <!-- Recent Transactions Section - Shows *ngFor structural directive -->
+  <section class="transactions-section">
+    <h2>Recent Transactions</h2>
+
+    <div class="card transactions-card">
+      <!-- *ngFor directive - loops through our transactions array -->
+      <div class="transaction-list">
+        <div class="transaction-item" *ngFor="let transaction of recentTransactions"
+          [class.income-item]="transaction.type === 'income'" [class.expense-item]="transaction.type === 'expense'">
+
+          <!-- Transaction icon and info -->
+          <div class="transaction-left">
+            <span class="transaction-icon">{{ getTransactionIcon(transaction.type) }}</span>
+            <div class="transaction-details">
+              <div class="transaction-description">{{ transaction.description }}</div>
+              <div class="transaction-meta">
+                <span class="transaction-category">{{ transaction.category }}</span>
+                <span class="transaction-date">{{ transaction.date | date:'short' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transaction amount with conditional styling -->
+          <div class="transaction-amount" [class]="getTransactionClass(transaction.amount)">
+            {{ transaction.amount | currency }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Show a message if no transactions exist -->
+      <div class="no-transactions" *ngIf="recentTransactions.length === 0">
+        <p>No recent transactions to display.</p>
+        <button class="btn btn-primary" (click)="onAddIncome()">Add Your First Transaction</button>
+      </div>
+    </div>
+  </section>
+
+</div>
