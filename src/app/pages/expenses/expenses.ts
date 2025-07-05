@@ -247,26 +247,36 @@ export class Expenses implements OnInit, OnDestroy {
     return colors[category] || '#a0aec0';
   }
 
-  // UPDATED: Add helper method to validate dates
+  // UPDATED: Fix the isValidDate method to avoid timezone issues
   private isValidDate(dateString: string): boolean {
     // Check if date string is provided
     if (!dateString) {
       return false;
     }
 
-    // Create date objects for comparison
-    const selectedDate = new Date(dateString);
-    const today = new Date();
+    // Use the same approach as our service to avoid timezone issues
+    // Split the date string and create a date in local timezone
+    const [year, month, day] = dateString.split('-').map(Number);
 
-    // Set today to start of day for fair comparison
-    today.setHours(0, 0, 0, 0);
+    // Check for valid date parts
+    if (!year || !month || !day) {
+      return false;
+    }
+
+    // Create the selected date in local timezone (month is 0-indexed)
+    const selectedDate = new Date(year, month - 1, day);
+
+    // Create today's date for comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for fair comparison
 
     // Check if the selected date is valid and not in the future
     const isValidDateObject = !isNaN(selectedDate.getTime());
     const isNotFuture = selectedDate <= today;
 
-    console.log('Date validation:', {
+    console.log('Date validation (timezone-safe):', {
       dateString,
+      dateParts: { year, month, day },
       selectedDate,
       today,
       isValidDateObject,
