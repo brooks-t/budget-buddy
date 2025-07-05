@@ -56,13 +56,12 @@
           </div>
         </div>
 
-        <!-- Source Selection (similar to category but for income types) -->
+        <!-- Source Selection -->
         <div class="form-group">
           <label for="source">Income Source</label>
           <select id="source" name="source" class="form-control" [(ngModel)]="newIncome.source" required
             #source="ngModel">
             <option value="">Choose an income source...</option>
-            <!-- Loop through available income sources -->
             <option *ngFor="let sourceOption of incomeSources" [value]="sourceOption">
               {{ sourceOption }}
             </option>
@@ -74,12 +73,11 @@
           </div>
         </div>
 
-        <!-- Frequency Selection (unique to income component) -->
+        <!-- Frequency Selection -->
         <div class="form-group">
           <label for="frequency">Frequency</label>
           <select id="frequency" name="frequency" class="form-control" [(ngModel)]="newIncome.frequency" required
             #frequency="ngModel">
-            <!-- Loop through frequency options using value and label -->
             <option *ngFor="let freq of frequencyOptions" [value]="freq.value">
               {{ freq.label }}
             </option>
@@ -100,6 +98,17 @@
           <!-- Validation message for date -->
           <div class="error-message" *ngIf="date.invalid && date.touched">
             Please select a date
+          </div>
+        </div>
+
+        <!-- Success Message - Now appears right in the form where user is focused -->
+        <div class="form-success-message" *ngIf="showSuccessMessage">
+          <div class="success-content">
+            <span class="success-icon">✅</span>
+            <div class="success-text">
+              <strong>Income Added Successfully!</strong>
+              <p>Your dashboard has been updated with the new income entry.</p>
+            </div>
           </div>
         </div>
 
@@ -143,7 +152,7 @@
           </select>
         </div>
 
-        <!-- Frequency Filter (unique to income component) -->
+        <!-- Frequency Filter -->
         <div class="filter-group">
           <label for="frequencyFilter">Filter by Frequency</label>
           <select id="frequencyFilter" class="form-control" [(ngModel)]="selectedFrequency">
