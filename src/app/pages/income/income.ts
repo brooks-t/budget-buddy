@@ -172,13 +172,14 @@ export class Income implements OnInit, OnDestroy {
       return;
     }
 
-    // Use the service to add income - this will automatically update Dashboard too!
+    // Use the service to add income - Pass the date STRING, not a Date object
+    // Let the service handle the timezone conversion
     this.financialDataService.addIncome({
       description: this.newIncome.description.trim(),
       amount: this.newIncome.amount,
       source: this.newIncome.source,
       frequency: this.newIncome.frequency,
-      date: new Date(this.newIncome.date),
+      date: this.newIncome.date as any, // Pass the string directly, service will convert it
     });
 
     // Show success message
@@ -187,14 +188,18 @@ export class Income implements OnInit, OnDestroy {
     // Reset the form properly
     this.resetForm();
 
-    console.log('Income added through service - Dashboard will update automatically!');
+    console.log(
+      'Income added through service - Dashboard will update automatically!'
+    );
   }
 
   // Method to delete an income entry using the service
   deleteIncome(id: number): void {
     // Use the service to delete income - this will automatically update Dashboard too!
     this.financialDataService.deleteIncome(id);
-    console.log('Income deleted through service - Dashboard will update automatically!');
+    console.log(
+      'Income deleted through service - Dashboard will update automatically!'
+    );
   }
 
   // Method to properly reset the form without validation errors

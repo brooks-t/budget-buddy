@@ -153,12 +153,13 @@ export class Expenses implements OnInit, OnDestroy {
       return;
     }
 
-    // Use the service to add expense - this will automatically update Dashboard too!
+    // Use the service to add expense - Pass the date STRING, not a Date object
+    // Let the service handle the timezone conversion
     this.financialDataService.addExpense({
       description: this.newExpense.description.trim(),
       amount: this.newExpense.amount,
       category: this.newExpense.category,
-      date: new Date(this.newExpense.date),
+      date: this.newExpense.date as any, // Pass the string directly, service will convert it
     });
 
     // Show success message

@@ -9,6 +9,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
  * - RxJS BehaviorSubject for reactive data
  * - Data sharing between components
  * - Single source of truth pattern
+ * - Proper timezone handling for date inputs
  */
 
 // First, let's define TypeScript interfaces for type safety
@@ -42,45 +43,10 @@ export interface ExpenseEntry {
   providedIn: 'root', // This makes the service available app-wide
 })
 export class FinancialData {
-  // Private BehaviorSubjects to hold our data
+  // Private BehaviorSubjects to hold our data - NOW STARTING WITH EMPTY ARRAYS
   // BehaviorSubject remembers the last value and emits it to new subscribers
-  private incomeSubject = new BehaviorSubject<IncomeEntry[]>([
-    // Sample income data
-    {
-      id: 1,
-      description: 'Software Developer Salary',
-      amount: 2750.0,
-      source: 'Salary',
-      frequency: 'monthly',
-      date: new Date('2024-01-15'),
-    },
-    {
-      id: 2,
-      description: 'Website Design Project',
-      amount: 500.0,
-      source: 'Freelance Work',
-      frequency: 'one-time',
-      date: new Date('2024-01-13'),
-    },
-  ]);
-
-  private expensesSubject = new BehaviorSubject<ExpenseEntry[]>([
-    // Sample expense data
-    {
-      id: 1,
-      description: 'Grocery Shopping',
-      amount: 125.5,
-      category: 'Groceries',
-      date: new Date('2024-01-14'),
-    },
-    {
-      id: 2,
-      description: 'Electric Bill',
-      amount: 89.25,
-      category: 'Bills & Utilities',
-      date: new Date('2024-01-12'),
-    },
-  ]);
+  private incomeSubject = new BehaviorSubject<IncomeEntry[]>([]);
+  private expensesSubject = new BehaviorSubject<ExpenseEntry[]>([]);
 
   // Public observables for components to subscribe to
   // These allow components to react to data changes automatically
@@ -88,7 +54,27 @@ export class FinancialData {
   public expenses$ = this.expensesSubject.asObservable();
 
   constructor() {
-    console.log('FinancialData service initialized');
+    console.log('FinancialData service initialized - starting with empty data');
+  }
+
+  // Utility function to handle date conversion from HTML date input
+  private createLocalDate(dateString: string): Date {
+    // HTML date inputs give us a string in YYYY-MM-DD format
+    // When we create a new Date(dateString), it assumes UTC timezone
+    // This can cause the date to be off by one day in different timezones
+
+    console.log('Original date string from form:', dateString);
+
+    // Split the date string and create a date in local timezone
+    const [year, month, day] = dateString.split('-').map(Number);
+
+    // Month is 0-indexed in JavaScript Date constructor
+    const localDate = new Date(year, month - 1, day);
+
+    console.log('Converted to local date:', localDate);
+    console.log('Local date string:', localDate.toDateString());
+
+    return localDate;
   }
 
   // Methods to get current values (useful for calculations)
@@ -103,25 +89,41 @@ export class FinancialData {
   // Methods to add new data
   addIncome(income: Omit<IncomeEntry, 'id'>): void {
     const currentIncome = this.getCurrentIncome();
+
+    // Convert the date properly to avoid timezone issues
+    const properDate =
+      income.date instanceof Date
+        ? income.date
+        : this.createLocalDate(income.date as string);
+
     const newIncome: IncomeEntry = {
       ...income,
       id: Date.now(), // Simple ID generation
+      date: properDate, // Use our timezone-corrected date
     };
 
     // Update the BehaviorSubject with new data
     this.incomeSubject.next([...currentIncome, newIncome]);
-    console.log('Income added:', newIncome);
+    console.log('Income added with corrected date:', newIncome);
   }
 
   addExpense(expense: Omit<ExpenseEntry, 'id'>): void {
     const currentExpenses = this.getCurrentExpenses();
+
+    // Convert the date properly to avoid timezone issues
+    const properDate =
+      expense.date instanceof Date
+        ? expense.date
+        : this.createLocalDate(expense.date as string);
+
     const newExpense: ExpenseEntry = {
       ...expense,
       id: Date.now(),
+      date: properDate, // Use our timezone-corrected date
     };
 
     this.expensesSubject.next([...currentExpenses, newExpense]);
-    console.log('Expense added:', newExpense);
+    console.log('Expense added with corrected date:', newExpense);
   }
 
   // Methods to delete data
@@ -143,7 +145,6 @@ export class FinancialData {
 
   // Computed properties for dashboard
   getTotalIncome(): Observable<number> {
-    // Using RxJS map operator to transform the income array into a total
     return new Observable((subscriber) => {
       this.income$.subscribe((incomeList) => {
         const total = incomeList.reduce(
@@ -170,36 +171,66 @@ export class FinancialData {
   // Get recent transactions for dashboard (combines income and expenses)
   getRecentTransactions(): Observable<Transaction[]> {
     return new Observable((subscriber) => {
-      // Combine both income and expenses into a single transaction list
-      const incomeData = this.getCurrentIncome();
-      const expenseData = this.getCurrentExpenses();
+      // Subscribe to BOTH income and expenses observables to get live updates
+      let currentIncomeData: IncomeEntry[] = [];
+      let currentExpenseData: ExpenseEntry[] = [];
 
-      // Convert income to transaction format
-      const incomeTransactions: Transaction[] = incomeData.map((income) => ({
-        id: income.id,
-        description: income.description,
-        amount: income.amount,
-        type: 'income' as const,
-        category: income.source,
-        date: income.date,
-      }));
+      // Subscribe to income changes
+      const incomeSubscription = this.income$.subscribe((incomeData) => {
+        currentIncomeData = incomeData;
+        console.log('Recent transactions: Income data updated', incomeData);
+        updateTransactions();
+      });
 
-      // Convert expenses to transaction format
-      const expenseTransactions: Transaction[] = expenseData.map((expense) => ({
-        id: expense.id,
-        description: expense.description,
-        amount: -expense.amount, // Negative for expenses
-        type: 'expense' as const,
-        category: expense.category,
-        date: expense.date,
-      }));
+      // Subscribe to expense changes
+      const expenseSubscription = this.expenses$.subscribe((expenseData) => {
+        currentExpenseData = expenseData;
+        console.log('Recent transactions: Expense data updated', expenseData);
+        updateTransactions();
+      });
 
-      // Combine and sort by date (newest first)
-      const allTransactions = [...incomeTransactions, ...expenseTransactions]
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 5); // Get only the 5 most recent
+      // Function to combine and emit updated transactions
+      function updateTransactions() {
+        // Convert income to transaction format
+        const incomeTransactions: Transaction[] = currentIncomeData.map(
+          (income) => ({
+            id: income.id,
+            description: income.description,
+            amount: income.amount,
+            type: 'income' as const,
+            category: income.source,
+            date: income.date,
+          })
+        );
 
-      subscriber.next(allTransactions);
+        // Convert expenses to transaction format
+        const expenseTransactions: Transaction[] = currentExpenseData.map(
+          (expense) => ({
+            id: expense.id,
+            description: expense.description,
+            amount: -expense.amount, // Negative for expenses
+            type: 'expense' as const,
+            category: expense.category,
+            date: expense.date,
+          })
+        );
+
+        // Combine and sort by date (newest first)
+        const allTransactions = [...incomeTransactions, ...expenseTransactions]
+          .sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          )
+          .slice(0, 5); // Get only the 5 most recent
+
+        console.log('Recent transactions updated:', allTransactions);
+        subscriber.next(allTransactions);
+      }
+
+      // Cleanup function when observable is unsubscribed
+      return () => {
+        incomeSubscription.unsubscribe();
+        expenseSubscription.unsubscribe();
+      };
     });
   }
 }
