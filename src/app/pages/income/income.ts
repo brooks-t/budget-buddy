@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { FinancialData, IncomeEntry } from '../../services/financial-data';
 
@@ -12,6 +12,7 @@ import { FinancialData, IncomeEntry } from '../../services/financial-data';
  * - Real-time updates that affect other components
  * - Proper subscription management
  * - Service-based CRUD operations
+ * - Better UX with proper form reset and success feedback
  */
 @Component({
   selector: 'app-income',
@@ -23,20 +24,27 @@ import { FinancialData, IncomeEntry } from '../../services/financial-data';
   styleUrl: './income.scss',
 })
 export class Income implements OnInit, OnDestroy {
+  // ViewChild to access the form directly for proper reset
+  @ViewChild('incomeForm') incomeForm!: NgForm;
+
   // Form data for adding new income - now with proper typing
   newIncome: {
     description: string;
     amount: number;
     source: string;
-    frequency: 'one-time' | 'weekly' | 'monthly' | 'yearly'; // Properly typed frequency
+    frequency: 'one-time' | 'weekly' | 'monthly' | 'yearly';
     date: string;
   } = {
     description: '',
     amount: 0,
     source: '',
-    frequency: 'one-time', // Now TypeScript knows this is the correct type
+    frequency: 'one-time',
     date: new Date().toISOString().split('T')[0],
   };
+
+  // Success state for showing feedback to user
+  showSuccessMessage = false;
+  successMessage = '';
 
   // Income sources/categories for easy selection
   incomeSources = [
@@ -150,17 +158,17 @@ export class Income implements OnInit, OnDestroy {
   addIncome(): void {
     // Basic form validation
     if (!this.newIncome.description.trim()) {
-      alert('Please enter a description');
+      this.showErrorMessage('Please enter a description');
       return;
     }
 
     if (this.newIncome.amount <= 0) {
-      alert('Please enter a valid amount');
+      this.showErrorMessage('Please enter a valid amount');
       return;
     }
 
     if (!this.newIncome.source) {
-      alert('Please select an income source');
+      this.showErrorMessage('Please select an income source');
       return;
     }
 
@@ -169,11 +177,14 @@ export class Income implements OnInit, OnDestroy {
       description: this.newIncome.description.trim(),
       amount: this.newIncome.amount,
       source: this.newIncome.source,
-      frequency: this.newIncome.frequency, // Now properly typed - no more error!
+      frequency: this.newIncome.frequency,
       date: new Date(this.newIncome.date),
     });
 
-    // Reset the form
+    // Show success message
+    this.showSuccessIndicator();
+
+    // Reset the form properly
     this.resetForm();
 
     console.log('Income added through service - Dashboard will update automatically!');
@@ -186,15 +197,41 @@ export class Income implements OnInit, OnDestroy {
     console.log('Income deleted through service - Dashboard will update automatically!');
   }
 
-  // Method to reset the form
+  // Method to properly reset the form without validation errors
   resetForm(): void {
+    // Reset the data
     this.newIncome = {
       description: '',
       amount: 0,
       source: '',
-      frequency: 'one-time', // Properly typed default value
+      frequency: 'one-time',
       date: new Date().toISOString().split('T')[0],
     };
+
+    // Reset the form state to remove validation errors
+    // We need to wait for the next tick to ensure the form is updated
+    setTimeout(() => {
+      if (this.incomeForm) {
+        this.incomeForm.resetForm(this.newIncome);
+      }
+    }, 0);
+  }
+
+  // Method to show success indicator
+  private showSuccessIndicator(): void {
+    this.successMessage = `✅ Income added successfully! Your dashboard has been updated.`;
+    this.showSuccessMessage = true;
+
+    // Hide the success message after 3 seconds
+    setTimeout(() => {
+      this.showSuccessMessage = false;
+    }, 3000);
+  }
+
+  // Method to show error messages (replaces alert for better UX)
+  private showErrorMessage(message: string): void {
+    // You could enhance this with a proper toast notification system
+    alert(message); // For now, keeping the alert but we could improve this
   }
 
   // Method to get source color for visual distinction
