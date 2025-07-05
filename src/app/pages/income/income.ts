@@ -1,15 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { FinancialData, IncomeEntry } from '../../services/financial-data';
 
 /**
- * Income Component - Track and manage income sources
+ * Income Component - Now connected to the shared financial data service
  *
  * This component demonstrates:
- * - Similar form patterns to Expenses (reinforcing learning)
- * - Different data management approach for income vs expenses
- * - Recurring income concepts (salary, freelance, etc.)
- * - Income categorization and tracking
+ * - Using the same service as Dashboard for data consistency
+ * - Real-time updates that affect other components
+ * - Proper subscription management
+ * - Service-based CRUD operations
  */
 @Component({
   selector: 'app-income',
@@ -20,13 +22,19 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './income.html',
   styleUrl: './income.scss',
 })
-export class Income {
-  // Form data for adding new income
-  newIncome = {
+export class Income implements OnInit, OnDestroy {
+  // Form data for adding new income - now with proper typing
+  newIncome: {
+    description: string;
+    amount: number;
+    source: string;
+    frequency: 'one-time' | 'weekly' | 'monthly' | 'yearly'; // Properly typed frequency
+    date: string;
+  } = {
     description: '',
     amount: 0,
     source: '',
-    frequency: 'one-time', // one-time, monthly, weekly, yearly
+    frequency: 'one-time', // Now TypeScript knows this is the correct type
     date: new Date().toISOString().split('T')[0],
   };
 
@@ -43,56 +51,29 @@ export class Income {
     'Other',
   ];
 
-  // Frequency options for recurring income
-  frequencyOptions = [
+  // Frequency options for recurring income - with proper typing
+  frequencyOptions: Array<{
+    value: 'one-time' | 'weekly' | 'monthly' | 'yearly';
+    label: string;
+  }> = [
     { value: 'one-time', label: 'One-time' },
     { value: 'weekly', label: 'Weekly' },
     { value: 'monthly', label: 'Monthly' },
     { value: 'yearly', label: 'Yearly' },
   ];
 
-  // Array to store all income entries
-  incomeEntries: Array<{
-    id: number;
-    description: string;
-    amount: number;
-    source: string;
-    frequency: string;
-    date: Date;
-  }> = [
-    // Sample income data
-    {
-      id: 1,
-      description: 'Software Developer Salary',
-      amount: 2750.0,
-      source: 'Salary',
-      frequency: 'monthly',
-      date: new Date('2024-01-15'),
-    },
-    {
-      id: 2,
-      description: 'Website Design Project',
-      amount: 500.0,
-      source: 'Freelance Work',
-      frequency: 'one-time',
-      date: new Date('2024-01-13'),
-    },
-    {
-      id: 3,
-      description: 'Stock Dividends',
-      amount: 125.0,
-      source: 'Investment Returns',
-      frequency: 'monthly',
-      date: new Date('2024-01-10'),
-    },
-  ];
+  // Data from the service - these will be populated by subscriptions
+  incomeEntries: IncomeEntry[] = [];
 
   // Filter properties
   selectedSource = 'All';
   selectedFrequency = 'All';
   searchTerm = '';
 
-  // Computed property - calculates total income
+  // Subscription management
+  private subscriptions: Subscription[] = [];
+
+  // Computed property - calculates total income from service data
   get totalIncome(): number {
     return this.filteredIncome.reduce((sum, income) => sum + income.amount, 0);
   }
@@ -132,7 +113,40 @@ export class Income {
     );
   }
 
-  // Method to add a new income entry
+  /**
+   * Constructor - Inject the shared financial data service
+   */
+  constructor(private financialDataService: FinancialData) {
+    console.log('Income component initialized with financial service');
+  }
+
+  /**
+   * OnInit - Set up subscription to income data from the service
+   */
+  ngOnInit(): void {
+    // Subscribe to income data changes from the service
+    const incomeSubscription = this.financialDataService.income$.subscribe({
+      next: (incomeData) => {
+        this.incomeEntries = incomeData;
+        console.log('Income component: Data updated from service', incomeData);
+      },
+      error: (error) => {
+        console.error('Error getting income data:', error);
+      },
+    });
+
+    this.subscriptions.push(incomeSubscription);
+  }
+
+  /**
+   * OnDestroy - Clean up subscriptions
+   */
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+    console.log('Income component subscriptions cleaned up');
+  }
+
+  // Method to add a new income entry using the service
   addIncome(): void {
     // Basic form validation
     if (!this.newIncome.description.trim()) {
@@ -150,32 +164,26 @@ export class Income {
       return;
     }
 
-    // Create new income object
-    const income = {
-      id: Date.now(), // Simple ID generation using timestamp
+    // Use the service to add income - this will automatically update Dashboard too!
+    this.financialDataService.addIncome({
       description: this.newIncome.description.trim(),
       amount: this.newIncome.amount,
       source: this.newIncome.source,
-      frequency: this.newIncome.frequency,
+      frequency: this.newIncome.frequency, // Now properly typed - no more error!
       date: new Date(this.newIncome.date),
-    };
-
-    // Add to income array
-    this.incomeEntries.push(income);
+    });
 
     // Reset the form
     this.resetForm();
 
-    console.log('Income added:', income);
+    console.log('Income added through service - Dashboard will update automatically!');
   }
 
-  // Method to delete an income entry
+  // Method to delete an income entry using the service
   deleteIncome(id: number): void {
-    const index = this.incomeEntries.findIndex((income) => income.id === id);
-    if (index > -1) {
-      this.incomeEntries.splice(index, 1);
-      console.log('Income deleted with ID:', id);
-    }
+    // Use the service to delete income - this will automatically update Dashboard too!
+    this.financialDataService.deleteIncome(id);
+    console.log('Income deleted through service - Dashboard will update automatically!');
   }
 
   // Method to reset the form
@@ -184,7 +192,7 @@ export class Income {
       description: '',
       amount: 0,
       source: '',
-      frequency: 'one-time',
+      frequency: 'one-time', // Properly typed default value
       date: new Date().toISOString().split('T')[0],
     };
   }
