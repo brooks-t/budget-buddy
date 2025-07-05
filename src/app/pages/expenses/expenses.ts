@@ -1,16 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { FinancialData, ExpenseEntry } from '../../services/financial-data';
 
 /**
- * Expenses Component - Track and categorize spending
+ * Expenses Component - Now connected to the shared financial data service
  *
  * This component demonstrates:
- * - Template-driven forms with ngModel
- * - Form validation
- * - Adding/removing items from arrays
- * - Local data management
- * - Filtering and sorting data
+ * - Using the same service as Dashboard and Income for data consistency
+ * - Real-time updates that affect other components
+ * - Proper subscription management
+ * - Service-based CRUD operations
  */
 @Component({
   selector: 'app-expenses',
@@ -21,7 +22,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
-export class Expenses {
+export class Expenses implements OnInit, OnDestroy {
   // Form data for adding new expenses
   newExpense = {
     description: '',
@@ -44,50 +45,17 @@ export class Expenses {
     'Other',
   ];
 
-  // Array to store all expenses
-  expenses: Array<{
-    id: number;
-    description: string;
-    amount: number;
-    category: string;
-    date: Date;
-  }> = [
-    // Sample expenses to show functionality
-    {
-      id: 1,
-      description: 'Grocery Shopping',
-      amount: 125.5,
-      category: 'Groceries',
-      date: new Date('2024-01-14'),
-    },
-    {
-      id: 2,
-      description: 'Electric Bill',
-      amount: 89.25,
-      category: 'Bills & Utilities',
-      date: new Date('2024-01-12'),
-    },
-    {
-      id: 3,
-      description: 'Coffee Shop',
-      amount: 4.75,
-      category: 'Food & Dining',
-      date: new Date('2024-01-12'),
-    },
-    {
-      id: 4,
-      description: 'Gas Station',
-      amount: 45.0,
-      category: 'Transportation',
-      date: new Date('2024-01-11'),
-    },
-  ];
+  // Data from the service - these will be populated by subscriptions
+  expenses: ExpenseEntry[] = [];
 
   // Filter properties
   selectedCategory = 'All';
   searchTerm = '';
 
-  // Computed property - calculates total expenses
+  // Subscription management
+  private subscriptions: Subscription[] = [];
+
+  // Computed property - calculates total expenses from service data
   get totalExpenses(): number {
     return this.filteredExpenses.reduce(
       (sum, expense) => sum + expense.amount,
@@ -123,7 +91,40 @@ export class Expenses {
     );
   }
 
-  // Method to add a new expense
+  /**
+   * Constructor - Inject the shared financial data service
+   */
+  constructor(private financialDataService: FinancialData) {
+    console.log('Expenses component initialized with financial service');
+  }
+
+  /**
+   * OnInit - Set up subscription to expense data from the service
+   */
+  ngOnInit(): void {
+    // Subscribe to expense data changes from the service
+    const expensesSubscription = this.financialDataService.expenses$.subscribe({
+      next: (expenseData) => {
+        this.expenses = expenseData;
+        console.log('Expenses component: Data updated from service', expenseData);
+      },
+      error: (error) => {
+        console.error('Error getting expense data:', error);
+      },
+    });
+
+    this.subscriptions.push(expensesSubscription);
+  }
+
+  /**
+   * OnDestroy - Clean up subscriptions
+   */
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+    console.log('Expenses component subscriptions cleaned up');
+  }
+
+  // Method to add a new expense using the service
   addExpense(): void {
     // Basic form validation
     if (!this.newExpense.description.trim()) {
@@ -141,31 +142,25 @@ export class Expenses {
       return;
     }
 
-    // Create new expense object
-    const expense = {
-      id: Date.now(), // Simple ID generation using timestamp
+    // Use the service to add expense - this will automatically update Dashboard too!
+    this.financialDataService.addExpense({
       description: this.newExpense.description.trim(),
       amount: this.newExpense.amount,
       category: this.newExpense.category,
       date: new Date(this.newExpense.date),
-    };
-
-    // Add to expenses array
-    this.expenses.push(expense);
+    });
 
     // Reset the form
     this.resetForm();
 
-    console.log('Expense added:', expense);
+    console.log('Expense added through service - Dashboard will update automatically!');
   }
 
-  // Method to delete an expense
+  // Method to delete an expense using the service
   deleteExpense(id: number): void {
-    const index = this.expenses.findIndex((expense) => expense.id === id);
-    if (index > -1) {
-      this.expenses.splice(index, 1);
-      console.log('Expense deleted with ID:', id);
-    }
+    // Use the service to delete expense - this will automatically update Dashboard too!
+    this.financialDataService.deleteExpense(id);
+    console.log('Expense deleted through service - Dashboard will update automatically!');
   }
 
   // Method to reset the form
