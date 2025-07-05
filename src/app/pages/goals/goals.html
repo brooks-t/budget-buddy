@@ -1,1 +1,226 @@
-<p>goals works!</p>
+<!-- Goals Template - Budget Goal Management and Progress Tracking -->
+<div class="goals-container">
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>Budget Goals</h1>
+    <p>Set spending limits and track your progress to stay on budget.</p>
+  </header>
+
+  <!-- Budget Goals Summary -->
+  <section class="summary-section" *ngIf="budgetProgress.length > 0">
+    <div class="card summary-card">
+      <h2>Budget Overview</h2>
+      <div class="summary-stats">
+        <div class="summary-item">
+          <span class="summary-label">Active Goals</span>
+          <span class="summary-count">{{ activeGoalsCount }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">On Track</span>
+          <span class="summary-count success">{{ onTrackGoalsCount }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Over Budget</span>
+          <span class="summary-count warning">{{ overBudgetGoalsCount }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Add New Goal Form -->
+  <section class="add-goal-section">
+    <div class="card">
+      <h2>Set New Budget Goal</h2>
+
+      <!-- Template-driven form for budget goal creation -->
+      <form class="goal-form" (ngSubmit)="addGoal()" #goalForm="ngForm">
+
+        <!-- Category Selection -->
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" name="category" class="form-control" [(ngModel)]="newGoal.category" required
+            #category="ngModel">
+            <option value="">Choose a category...</option>
+            <!-- Only show categories that don't have active goals -->
+            <option *ngFor="let cat of availableCategories" [value]="cat">
+              {{ cat }}
+            </option>
+          </select>
+
+          <!-- Validation message for category -->
+          <div class="error-message" *ngIf="category.invalid && category.touched">
+            Please select a category
+          </div>
+
+          <!-- Helper text when no categories available -->
+          <div class="info-message" *ngIf="availableCategories.length === 0">
+            All categories have active budget goals. Delete an existing goal to add a new one.
+          </div>
+        </div>
+
+        <!-- Monthly Limit Input -->
+        <div class="form-group">
+          <label for="monthlyLimit">Monthly Budget Limit ($)</label>
+          <input type="number" id="monthlyLimit" name="monthlyLimit" class="form-control" placeholder="0.00" step="0.01"
+            min="0.01" [(ngModel)]="newGoal.monthlyLimit" required #monthlyLimit="ngModel">
+
+          <!-- Validation message for amount -->
+          <div class="error-message" *ngIf="monthlyLimit.invalid && monthlyLimit.touched">
+            Please enter a valid budget amount (greater than $0.00)
+          </div>
+        </div>
+
+        <!-- Success Message -->
+        <div class="form-success-message" *ngIf="showSuccessMessage">
+          <div class="success-content">
+            <span class="success-icon">🎯</span>
+            <div class="success-text">
+              <strong>Budget Goal Added!</strong>
+              <p>Your new budget limit is now being tracked.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Action Buttons -->
+        <div class="form-actions">
+          <!-- Submit button - disabled if form is invalid or no categories available -->
+          <button type="submit" class="btn btn-primary"
+            [disabled]="goalForm.invalid || availableCategories.length === 0">
+            <span>🎯</span> Set Budget Goal
+          </button>
+
+          <!-- Reset button -->
+          <button type="button" class="btn btn-secondary" (click)="resetForm()">
+            <span>🔄</span> Clear Form
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Budget Progress Section -->
+  <section class="progress-section" *ngIf="budgetProgress.length > 0">
+    <div class="card">
+      <h2>Current Month Progress</h2>
+
+      <div class="progress-list">
+        <!-- Loop through budget progress for each category -->
+        <div class="progress-item" *ngFor="let progress of budgetProgress">
+
+          <!-- Progress Header with Category and Status -->
+          <div class="progress-header">
+            <div class="category-info">
+              <span class="category-badge" [style.background-color]="getCategoryColor(progress.category)">
+                {{ progress.category }}
+              </span>
+              <span class="status-badge" [style.background-color]="getProgressColor(progress)">
+                {{ getStatusText(progress) }}
+              </span>
+            </div>
+
+            <div class="amount-info">
+              <span class="spent-amount">${{ progress.currentSpent | number:'1.2-2' }}</span>
+              <span class="budget-limit">of ${{ progress.monthlyLimit | number:'1.2-2' }}</span>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="progress-bar-container">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="progress.percentageUsed > 100 ? 100 : progress.percentageUsed"
+                [style.background-color]="getProgressColor(progress)">
+              </div>
+            </div>
+            <span class="progress-percentage">{{ progress.percentageUsed }}%</span>
+          </div>
+
+          <!-- Progress Details -->
+          <div class="progress-details">
+            <div class="detail-item">
+              <span class="detail-label">Remaining:</span>
+              <span class="detail-value" [class.negative]="progress.remainingBudget < 0">
+                ${{ progress.remainingBudget | number:'1.2-2' }}
+              </span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Days left in month:</span>
+              <span class="detail-value">{{ progress.daysLeftInMonth }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Manage Goals Section -->
+  <section class="manage-goals-section" *ngIf="budgetGoals.length > 0">
+    <div class="card">
+      <h2>Manage Budget Goals</h2>
+
+      <div class="goals-list">
+        <!-- Loop through all budget goals -->
+        <div class="goal-item" *ngFor="let goal of budgetGoals">
+
+          <!-- Goal Information -->
+          <div class="goal-info">
+            <div class="goal-header">
+              <span class="goal-category" [style.background-color]="getCategoryColor(goal.category)">
+                {{ goal.category }}
+              </span>
+              <span class="goal-status" [class.active]="goal.isActive" [class.inactive]="!goal.isActive">
+                {{ goal.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+
+            <div class="goal-details">
+              <span class="goal-limit">${{ goal.monthlyLimit | currency:'USD':'symbol':'1.2-2' }} per month</span>
+              <span class="goal-created">Created: {{ goal.createdDate | date:'mediumDate' }}</span>
+            </div>
+          </div>
+
+          <!-- Goal Actions -->
+          <div class="goal-actions">
+            <!-- Toggle active/inactive -->
+            <button class="btn-toggle" (click)="toggleGoal(goal.id, !goal.isActive)"
+              [title]="goal.isActive ? 'Deactivate goal' : 'Activate goal'">
+              {{ goal.isActive ? '⏸️' : '▶️' }}
+            </button>
+
+            <!-- Delete goal -->
+            <button class="btn-delete" (click)="deleteGoal(goal.id)" title="Delete budget goal">
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Empty State Messages -->
+
+  <!-- No goals exist at all -->
+  <section class="empty-state" *ngIf="budgetGoals.length === 0">
+    <div class="card">
+      <div class="empty-content">
+        <span class="empty-icon">🎯</span>
+        <h3>No Budget Goals Set</h3>
+        <p>Create your first budget goal to start tracking your spending limits.</p>
+        <p>Budget goals help you stay on track and avoid overspending in specific categories.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Goals exist but no progress (no expenses this month) -->
+  <section class="empty-state" *ngIf="budgetGoals.length > 0 && budgetProgress.length === 0">
+    <div class="card">
+      <div class="empty-content">
+        <span class="empty-icon">📊</span>
+        <h3>No Spending This Month</h3>
+        <p>You have budget goals set up, but no expenses recorded for this month yet.</p>
+        <p>Add some expenses to see your budget progress!</p>
+      </div>
+    </div>
+  </section>
+
+</div>

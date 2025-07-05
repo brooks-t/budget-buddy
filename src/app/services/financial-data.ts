@@ -1,18 +1,32 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 /**
- * Financial Data Service - Centralized data management for Budget Buddy
- *
- * This service demonstrates:
- * - Angular Services and Dependency Injection
- * - RxJS BehaviorSubject for reactive data
- * - Data sharing between components
- * - Single source of truth pattern
- * - Proper timezone handling for date inputs
+ * Financial Data Service - Now with Budget Goals support
  */
 
-// First, let's define TypeScript interfaces for type safety
+// Add new interface for budget goals
+export interface BudgetGoal {
+  id: number;
+  category: string;
+  monthlyLimit: number;
+  createdDate: Date;
+  isActive: boolean;
+}
+
+// Add interface for budget progress tracking
+export interface BudgetProgress {
+  category: string;
+  monthlyLimit: number;
+  currentSpent: number;
+  remainingBudget: number;
+  percentageUsed: number;
+  isOverBudget: boolean;
+  daysLeftInMonth: number;
+}
+
+// Existing interfaces...
 export interface Transaction {
   id: number;
   description: string;
@@ -40,44 +54,151 @@ export interface ExpenseEntry {
 }
 
 @Injectable({
-  providedIn: 'root', // This makes the service available app-wide
+  providedIn: 'root',
 })
 export class FinancialData {
-  // Private BehaviorSubjects to hold our data - NOW STARTING WITH EMPTY ARRAYS
-  // BehaviorSubject remembers the last value and emits it to new subscribers
+  // Existing BehaviorSubjects...
   private incomeSubject = new BehaviorSubject<IncomeEntry[]>([]);
-  private expensesSubject = new BehaviorSubject<ExpenseEntry[]>([]);
+  private expensesSubject = new BehaviorSubject<ExpenseEntry[]>([]); // FIXED: Completely removed the extra '>' character
 
-  // Public observables for components to subscribe to
-  // These allow components to react to data changes automatically
+  // NEW: Add budget goals management
+  private budgetGoalsSubject = new BehaviorSubject<BudgetGoal[]>([]);
+
+  // Existing public observables...
   public income$ = this.incomeSubject.asObservable();
   public expenses$ = this.expensesSubject.asObservable();
 
+  // NEW: Public observable for budget goals
+  public budgetGoals$ = this.budgetGoalsSubject.asObservable();
+
   constructor() {
-    console.log('FinancialData service initialized - starting with empty data');
+    console.log('FinancialData service initialized with budget goals support');
+  }
+
+  // Existing methods... (keep all your current methods)
+
+  // NEW: Budget Goals Methods
+
+  /**
+   * Add a new budget goal for a category
+   */
+  addBudgetGoal(goal: Omit<BudgetGoal, 'id' | 'createdDate'>): void {
+    const currentGoals = this.budgetGoalsSubject.getValue();
+
+    // Check if goal already exists for this category
+    const existingGoal = currentGoals.find(
+      (g) => g.category === goal.category && g.isActive
+    );
+    if (existingGoal) {
+      console.warn(
+        `Active budget goal already exists for category: ${goal.category}`
+      );
+      return;
+    }
+
+    const newGoal: BudgetGoal = {
+      ...goal,
+      id: Date.now(),
+      createdDate: new Date(),
+    };
+
+    this.budgetGoalsSubject.next([...currentGoals, newGoal]);
+    console.log('Budget goal added:', newGoal);
+  }
+
+  /**
+   * Update an existing budget goal
+   */
+  updateBudgetGoal(goalId: number, updates: Partial<BudgetGoal>): void {
+    const currentGoals = this.budgetGoalsSubject.getValue();
+    const updatedGoals = currentGoals.map((goal) =>
+      goal.id === goalId ? { ...goal, ...updates } : goal
+    );
+
+    this.budgetGoalsSubject.next(updatedGoals);
+    console.log('Budget goal updated:', goalId, updates);
+  }
+
+  /**
+   * Delete a budget goal
+   */
+  deleteBudgetGoal(goalId: number): void {
+    const currentGoals = this.budgetGoalsSubject.getValue();
+    const updatedGoals = currentGoals.filter((goal) => goal.id !== goalId);
+
+    this.budgetGoalsSubject.next(updatedGoals);
+    console.log('Budget goal deleted:', goalId);
+  }
+
+  /**
+   * Get current month's budget progress for all categories
+   */
+  getBudgetProgress(): Observable<BudgetProgress[]> {
+    return combineLatest([this.budgetGoals$, this.expenses$]).pipe(
+      map(([goals, expenses]) => {
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth();
+        const currentYear = currentDate.getFullYear();
+
+        // Filter expenses for current month
+        const currentMonthExpenses = expenses.filter((expense) => {
+          const expenseDate = new Date(expense.date);
+          return (
+            expenseDate.getMonth() === currentMonth &&
+            expenseDate.getFullYear() === currentYear
+          );
+        });
+
+        // Calculate days left in current month
+        const daysInMonth = new Date(
+          currentYear,
+          currentMonth + 1,
+          0
+        ).getDate();
+        const daysLeftInMonth = daysInMonth - currentDate.getDate();
+
+        // Create progress for each active goal
+        return goals
+          .filter((goal) => goal.isActive)
+          .map((goal) => {
+            // Calculate spending for this category in current month
+            const categorySpending = currentMonthExpenses
+              .filter((expense) => expense.category === goal.category)
+              .reduce((sum, expense) => sum + expense.amount, 0);
+
+            const remainingBudget = goal.monthlyLimit - categorySpending;
+            const percentageUsed =
+              goal.monthlyLimit > 0
+                ? (categorySpending / goal.monthlyLimit) * 100
+                : 0;
+
+            return {
+              category: goal.category,
+              monthlyLimit: goal.monthlyLimit,
+              currentSpent: categorySpending,
+              remainingBudget,
+              percentageUsed: Math.round(percentageUsed),
+              isOverBudget: categorySpending > goal.monthlyLimit,
+              daysLeftInMonth,
+            };
+          });
+      })
+    );
   }
 
   // Utility function to handle date conversion from HTML date input
   private createLocalDate(dateString: string): Date {
-    // HTML date inputs give us a string in YYYY-MM-DD format
-    // When we create a new Date(dateString), it assumes UTC timezone
-    // This can cause the date to be off by one day in different timezones
-
     console.log('Original date string from form:', dateString);
 
-    // Split the date string and create a date in local timezone
     const [year, month, day] = dateString.split('-').map(Number);
-
-    // Month is 0-indexed in JavaScript Date constructor
     const localDate = new Date(year, month - 1, day);
 
     console.log('Converted to local date:', localDate);
-    console.log('Local date string:', localDate.toDateString());
 
     return localDate;
   }
 
-  // Methods to get current values (useful for calculations)
+  // Keep all your existing methods here...
   getCurrentIncome(): IncomeEntry[] {
     return this.incomeSubject.getValue();
   }
@@ -86,11 +207,13 @@ export class FinancialData {
     return this.expensesSubject.getValue();
   }
 
-  // Methods to add new data
+  getCurrentBudgetGoals(): BudgetGoal[] {
+    return this.budgetGoalsSubject.getValue();
+  }
+
   addIncome(income: Omit<IncomeEntry, 'id'>): void {
     const currentIncome = this.getCurrentIncome();
 
-    // Convert the date properly to avoid timezone issues
     const properDate =
       income.date instanceof Date
         ? income.date
@@ -110,7 +233,6 @@ export class FinancialData {
   addExpense(expense: Omit<ExpenseEntry, 'id'>): void {
     const currentExpenses = this.getCurrentExpenses();
 
-    // Convert the date properly to avoid timezone issues
     const properDate =
       expense.date instanceof Date
         ? expense.date
@@ -126,7 +248,6 @@ export class FinancialData {
     console.log('Expense added with corrected date:', newExpense);
   }
 
-  // Methods to delete data
   deleteIncome(id: number): void {
     const currentIncome = this.getCurrentIncome();
     const updatedIncome = currentIncome.filter((income) => income.id !== id);
@@ -143,7 +264,6 @@ export class FinancialData {
     console.log('Expense deleted with ID:', id);
   }
 
-  // Computed properties for dashboard
   getTotalIncome(): Observable<number> {
     return new Observable((subscriber) => {
       this.income$.subscribe((incomeList) => {
@@ -168,24 +288,18 @@ export class FinancialData {
     });
   }
 
-  // Get recent transactions for dashboard (combines income and expenses)
   getRecentTransactions(): Observable<Transaction[]> {
     return new Observable((subscriber) => {
-      // Subscribe to BOTH income and expenses observables to get live updates
       let currentIncomeData: IncomeEntry[] = [];
       let currentExpenseData: ExpenseEntry[] = [];
 
-      // Subscribe to income changes
       const incomeSubscription = this.income$.subscribe((incomeData) => {
         currentIncomeData = incomeData;
-        console.log('Recent transactions: Income data updated', incomeData);
         updateTransactions();
       });
 
-      // Subscribe to expense changes
       const expenseSubscription = this.expenses$.subscribe((expenseData) => {
         currentExpenseData = expenseData;
-        console.log('Recent transactions: Expense data updated', expenseData);
         updateTransactions();
       });
 
@@ -222,7 +336,6 @@ export class FinancialData {
           )
           .slice(0, 5); // Get only the 5 most recent
 
-        console.log('Recent transactions updated:', allTransactions);
         subscriber.next(allTransactions);
       }
 
