@@ -13,6 +13,7 @@ import { FinancialData, IncomeEntry } from '../../services/financial-data';
  * - Proper subscription management
  * - Service-based CRUD operations
  * - Better UX with proper form reset and success feedback
+ * - Date validation to prevent future dates
  */
 @Component({
   selector: 'app-income',
@@ -27,7 +28,10 @@ export class Income implements OnInit, OnDestroy {
   // ViewChild to access the form directly for proper reset
   @ViewChild('incomeForm') incomeForm!: NgForm;
 
-  // Form data for adding new income - now with proper typing
+  // UPDATED: Add maxDate property to restrict future dates
+  maxDate: string = new Date().toISOString().split('T')[0]; // Today's date in YYYY-MM-DD format
+
+  // UPDATED: Form data for adding new income - now uses maxDate for default
   newIncome: {
     description: string;
     amount: number;
@@ -39,7 +43,7 @@ export class Income implements OnInit, OnDestroy {
     amount: 0,
     source: '',
     frequency: 'one-time',
-    date: new Date().toISOString().split('T')[0],
+    date: this.maxDate, // UPDATED: Default to today instead of calculated date
   };
 
   // Success state for showing feedback to user
@@ -172,6 +176,14 @@ export class Income implements OnInit, OnDestroy {
       return;
     }
 
+    // UPDATED: Add custom date validation to prevent future dates
+    if (!this.isValidDate(this.newIncome.date)) {
+      this.showErrorMessage(
+        'Please select a valid date that is not in the future'
+      );
+      return;
+    }
+
     // Use the service to add income - Pass the date STRING, not a Date object
     // Let the service handle the timezone conversion
     this.financialDataService.addIncome({
@@ -193,6 +205,36 @@ export class Income implements OnInit, OnDestroy {
     );
   }
 
+  // UPDATED: Add helper method to validate dates
+  private isValidDate(dateString: string): boolean {
+    // Check if date string is provided
+    if (!dateString) {
+      return false;
+    }
+
+    // Create date objects for comparison
+    const selectedDate = new Date(dateString);
+    const today = new Date();
+
+    // Set today to start of day for fair comparison
+    today.setHours(0, 0, 0, 0);
+
+    // Check if the selected date is valid and not in the future
+    const isValidDateObject = !isNaN(selectedDate.getTime());
+    const isNotFuture = selectedDate <= today;
+
+    console.log('Date validation:', {
+      dateString,
+      selectedDate,
+      today,
+      isValidDateObject,
+      isNotFuture,
+      result: isValidDateObject && isNotFuture,
+    });
+
+    return isValidDateObject && isNotFuture;
+  }
+
   // Method to delete an income entry using the service
   deleteIncome(id: number): void {
     // Use the service to delete income - this will automatically update Dashboard too!
@@ -202,7 +244,7 @@ export class Income implements OnInit, OnDestroy {
     );
   }
 
-  // Method to properly reset the form without validation errors
+  // UPDATED: Method to properly reset the form without validation errors
   resetForm(): void {
     // Reset the data
     this.newIncome = {
@@ -210,7 +252,7 @@ export class Income implements OnInit, OnDestroy {
       amount: 0,
       source: '',
       frequency: 'one-time',
-      date: new Date().toISOString().split('T')[0],
+      date: this.maxDate, // UPDATED: Always reset to today's date
     };
 
     // Reset the form state to remove validation errors

@@ -89,15 +89,16 @@
           </div>
         </div>
 
-        <!-- Date Input -->
+        <!-- Date Input - UPDATED: Added max attribute to prevent future dates -->
         <div class="form-group">
           <label for="date">Date</label>
-          <input type="date" id="date" name="date" class="form-control" [(ngModel)]="newIncome.date" required
-            #date="ngModel">
+          <input type="date" id="date" name="date" class="form-control" [(ngModel)]="newIncome.date" [max]="maxDate"
+            required #date="ngModel">
 
-          <!-- Validation message for date -->
+          <!-- UPDATED: Enhanced validation message to handle future date restriction -->
           <div class="error-message" *ngIf="date.invalid && date.touched">
-            Please select a date
+            <span *ngIf="date.errors?.['required']">Please select a date</span>
+            <span *ngIf="date.errors?.['max']">Date cannot be in the future</span>
           </div>
         </div>
 
