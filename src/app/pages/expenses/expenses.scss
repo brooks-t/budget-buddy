@@ -385,6 +385,86 @@
   }
 }
 
+/* Form Success Message - Appears right in the form where user is focused */
+.form-success-message {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid rgba(102, 126, 234, 0.3);
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 2rem;
+  overflow: hidden;
+  animation: slideInDown 0.5s ease-out;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
+}
+
+.success-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.success-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+.success-text {
+  flex: 1;
+  color: white;
+
+  strong {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.9;
+    line-height: 1.4;
+  }
+}
+
+/* Animation for in-form success message */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 200px;
+  }
+}
+
+/* Animation for hiding the success message */
+@keyframes slideOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 200px;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-30px);
+    max-height: 0;
+  }
+}
+
+/* When hiding the success message */
+.form-success-message.hiding {
+  animation: slideOutUp 0.3s ease-in forwards;
+}
+
 /* Responsive Design for Tablets */
 @media (max-width: 768px) {
   .expenses-container {

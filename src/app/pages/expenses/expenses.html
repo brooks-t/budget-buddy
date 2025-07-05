@@ -86,6 +86,17 @@
           </div>
         </div>
 
+        <!-- Success Message - Now appears right in the form where user is focused -->
+        <div class="form-success-message" *ngIf="showSuccessMessage">
+          <div class="success-content">
+            <span class="success-icon">✅</span>
+            <div class="success-text">
+              <strong>Expense Added Successfully!</strong>
+              <p>Your dashboard has been updated with the new expense entry.</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Form Action Buttons -->
         <div class="form-actions">
           <!-- Submit button - disabled if form is invalid -->
