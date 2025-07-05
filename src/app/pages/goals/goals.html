@@ -174,7 +174,8 @@
             </div>
 
             <div class="goal-details">
-              <span class="goal-limit">${{ goal.monthlyLimit | currency:'USD':'symbol':'1.2-2' }} per month</span>
+              <!-- FIXED: Remove the manual $ since currency pipe already adds it -->
+              <span class="goal-limit">{{ goal.monthlyLimit | currency:'USD':'symbol':'1.2-2' }} per month</span>
               <span class="goal-created">Created: {{ goal.createdDate | date:'mediumDate' }}</span>
             </div>
           </div>
