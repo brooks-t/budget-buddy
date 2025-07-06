@@ -301,11 +301,17 @@ export class Reports implements OnInit, OnDestroy {
         Math.max(...allDates.map((d) => d.getTime()))
       );
 
-      // Use the actual data range (no padding needed for "All Time")
-      this.customStartDate = this.formatDateForInput(oldestDate);
-      this.customEndDate = this.formatDateForInput(newestDate);
+      // Add 1 day padding to ensure we include all data
+      const startDate = new Date(oldestDate);
+      startDate.setDate(startDate.getDate() - 1); // Go back 1 day
 
-      console.log('📅 Auto-detected date range from data:');
+      const endDate = new Date(newestDate);
+      endDate.setDate(endDate.getDate() + 1); // Go forward 1 day
+
+      this.customStartDate = this.formatDateForInput(startDate);
+      this.customEndDate = this.formatDateForInput(endDate);
+
+      console.log('📅 Auto-detected date range from data (with padding):');
       console.log(
         '  Data spans:',
         oldestDate.toLocaleDateString(),
@@ -604,6 +610,64 @@ export class Reports implements OnInit, OnDestroy {
     const averageMonthlyExpenses = this.calculateAverageMonthly(
       this.filteredExpenses
     );
+
+    // NEW: Add detailed debugging for expense totals
+    console.log('💰 EXPENSE TOTAL COMPARISON:');
+    console.log('  All expenses count:', this.allExpenses.length);
+    console.log('  Filtered expenses count:', this.filteredExpenses.length);
+    console.log(
+      '  All expenses total:',
+      this.allExpenses.reduce((sum, e) => sum + e.amount, 0)
+    );
+    console.log('  Filtered expenses total:', totalExpenses);
+    console.log(
+      '  Date range:',
+      this.customStartDate,
+      'to',
+      this.customEndDate
+    );
+    console.log('  Selected category:', this.selectedCategory);
+
+    // Show which expenses are being filtered out
+    const excludedExpenses = this.allExpenses.filter((expense) => {
+      const expenseDate = new Date(expense.date);
+      const startDate = new Date(this.customStartDate);
+      const endDate = new Date(this.customEndDate);
+      const inDateRange = expenseDate >= startDate && expenseDate <= endDate;
+      const inCategory =
+        this.selectedCategory === 'all' ||
+        expense.category === this.selectedCategory;
+      return !(inDateRange && inCategory);
+    });
+
+    console.log('  Excluded expenses count:', excludedExpenses.length);
+    console.log(
+      '  Excluded expenses total:',
+      excludedExpenses.reduce((sum, e) => sum + e.amount, 0)
+    );
+
+    // Show sample excluded expenses
+    if (excludedExpenses.length > 0) {
+      console.log('  Sample excluded expenses:');
+      excludedExpenses.slice(0, 3).forEach((expense, index) => {
+        const expenseDate = new Date(expense.date);
+        const startDate = new Date(this.customStartDate);
+        const endDate = new Date(this.customEndDate);
+
+        console.log(`    Expense ${index + 1}:`, {
+          description: expense.description,
+          amount: expense.amount,
+          date: expense.date,
+          formattedDate: expenseDate.toLocaleDateString(),
+          category: expense.category,
+          dateType: typeof expense.date,
+          isBeforeStart: expenseDate < startDate,
+          isAfterEnd: expenseDate > endDate,
+          startDateFormatted: startDate.toLocaleDateString(),
+          endDateFormatted: endDate.toLocaleDateString(),
+        });
+      });
+    }
 
     return {
       totalIncome,
