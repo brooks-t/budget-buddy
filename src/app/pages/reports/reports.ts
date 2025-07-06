@@ -21,6 +21,7 @@ import {
   PieController,
   LineController,
   BarController,
+  Filler, // 🔧 ADD this missing plugin!
 } from 'chart.js';
 
 import {
@@ -44,7 +45,8 @@ Chart.register(
   Legend,
   PieController,
   LineController,
-  BarController
+  BarController,
+  Filler // 🔧 ADD this missing plugin!
 );
 
 /**
@@ -75,7 +77,7 @@ export class Reports implements OnInit, OnDestroy {
   budgetGoals: BudgetGoal[] = [];
 
   // Filter properties
-  selectedTimeRange: string = 'last3months';
+  selectedTimeRange: string = 'alltime'; // Changed from 'last3months'
   customStartDate: string = '';
   customEndDate: string = '';
   selectedCategory: string = 'all';
@@ -185,22 +187,27 @@ export class Reports implements OnInit, OnDestroy {
 
     // TEMPORARY: Add this debugging code
     console.log('Testing service access...');
-    console.log('Income data:', this.financialDataService.getCurrentIncome());
-    console.log(
-      'Expense data:',
-      this.financialDataService.getCurrentExpenses()
+    const allIncome = this.financialDataService.getCurrentIncome();
+    const allExpenses = this.financialDataService.getCurrentExpenses();
+
+    console.log('Income data:', allIncome);
+    console.log('Expense data:', allExpenses);
+
+    // NEW: Calculate totals for comparison
+    const totalIncomeAmount = allIncome.reduce((sum, i) => sum + i.amount, 0);
+    const totalExpenseAmount = allExpenses.reduce(
+      (sum, e) => sum + e.amount,
+      0
     );
+
+    console.log('🔢 SERVICE TOTALS (should match Dashboard):');
+    console.log('  Total Income:', totalIncomeAmount);
+    console.log('  Total Expenses:', totalExpenseAmount);
   }
 
   ngOnInit(): void {
     this.loadFinancialData();
     this.initializeDateRange();
-
-    // Add this: Force an initial update after a short delay
-    setTimeout(() => {
-      console.log('🚀 Force updating reports after initialization...');
-      this.updateReports();
-    }, 500);
   }
 
   ngOnDestroy(): void {
@@ -263,38 +270,77 @@ export class Reports implements OnInit, OnDestroy {
   private checkAndUpdateReports(): void {
     if (this.allIncome.length > 0 && this.allExpenses.length > 0) {
       console.log('All data loaded, updating reports...');
-      console.log('Date range:', this.customStartDate, 'to', this.customEndDate);
+
+      // IMPORTANT: Initialize date range AFTER data is loaded
+      if (!this.customStartDate || !this.customEndDate) {
+        this.initializeDateRangeFromData();
+      }
+
       this.updateReports();
     }
   }
 
   /**
-   * Extract unique categories from expenses for filter dropdown
+   * Initialize date range based on actual loaded data
    */
-  private extractCategories(): void {
-    const categories = new Set(
-      this.allExpenses.map((expense) => expense.category)
+  private initializeDateRangeFromData(): void {
+    const allDates: Date[] = [];
+
+    // Collect all dates from income and expenses
+    this.allIncome.forEach((income) => allDates.push(new Date(income.date)));
+    this.allExpenses.forEach((expense) =>
+      allDates.push(new Date(expense.date))
     );
-    this.availableCategories = ['all', ...Array.from(categories)];
+
+    if (allDates.length > 0) {
+      // Find the actual min and max dates in the data
+      const oldestDate = new Date(
+        Math.min(...allDates.map((d) => d.getTime()))
+      );
+      const newestDate = new Date(
+        Math.max(...allDates.map((d) => d.getTime()))
+      );
+
+      // Use the actual data range (no padding needed for "All Time")
+      this.customStartDate = this.formatDateForInput(oldestDate);
+      this.customEndDate = this.formatDateForInput(newestDate);
+
+      console.log('📅 Auto-detected date range from data:');
+      console.log(
+        '  Data spans:',
+        oldestDate.toLocaleDateString(),
+        'to',
+        newestDate.toLocaleDateString()
+      );
+      console.log(
+        '  Filter set to:',
+        this.customStartDate,
+        'to',
+        this.customEndDate
+      );
+    }
   }
 
   /**
-   * Initialize default date range (last 3 months)
+   * Initialize default date range (fallback only)
    */
   private initializeDateRange(): void {
-    const today = new Date();
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(today.getMonth() - 3);
+    // Only set fallback if no dates are set yet
+    if (!this.customStartDate || !this.customEndDate) {
+      const today = new Date();
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(today.getMonth() - 6);
 
-    this.customStartDate = this.formatDateForInput(threeMonthsAgo);
-    this.customEndDate = this.formatDateForInput(today);
+      this.customStartDate = this.formatDateForInput(sixMonthsAgo);
+      this.customEndDate = this.formatDateForInput(today);
 
-    console.log(
-      '📅 Initialized date range:',
-      this.customStartDate,
-      'to',
-      this.customEndDate
-    );
+      console.log(
+        '📅 Using fallback date range:',
+        this.customStartDate,
+        'to',
+        this.customEndDate
+      );
+    }
   }
 
   /**
@@ -311,6 +357,12 @@ export class Reports implements OnInit, OnDestroy {
     const today = new Date();
 
     switch (this.selectedTimeRange) {
+      case 'alltime':
+        // Set a very wide range to capture all data
+        this.customStartDate = '2020-01-01';
+        this.customEndDate = this.formatDateForInput(today);
+        break;
+
       case 'last30days':
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -360,16 +412,23 @@ export class Reports implements OnInit, OnDestroy {
   private updateReports(): void {
     console.log('🔄 Starting updateReports...');
     this.filterData();
-    console.log('📊 Filtered data:', {
+
+    console.log('📊 After filtering:', {
       income: this.filteredIncome.length,
       expenses: this.filteredExpenses.length,
+      incomeTotal: this.filteredIncome.reduce((sum, i) => sum + i.amount, 0),
+      expenseTotal: this.filteredExpenses.reduce((sum, e) => sum + e.amount, 0),
     });
 
     this.updateMonthlyTrendChart();
     this.updateCategoryBreakdownChart();
     this.updateIncomeSourceChart();
 
-    console.log('📈 Charts updated');
+    console.log('📈 Charts updated with data:', {
+      trendLabels: this.monthlyTrendChart.labels?.length,
+      categoryLabels: this.categoryBreakdownChart.labels?.length,
+      incomeLabels: this.incomeSourceChart.labels?.length,
+    });
   }
 
   /**
@@ -379,13 +438,10 @@ export class Reports implements OnInit, OnDestroy {
     const startDate = new Date(this.customStartDate);
     const endDate = new Date(this.customEndDate);
 
-    console.log('🔍 Filtering data with range:', startDate, 'to', endDate);
-
     // Filter income by date range
     this.filteredIncome = this.allIncome.filter((income) => {
       const incomeDate = new Date(income.date);
-      const isInRange = incomeDate >= startDate && incomeDate <= endDate;
-      return isInRange;
+      return incomeDate >= startDate && incomeDate <= endDate;
     });
 
     // Filter expenses by date range and category
@@ -397,27 +453,6 @@ export class Reports implements OnInit, OnDestroy {
         expense.category === this.selectedCategory;
       return inDateRange && inCategory;
     });
-
-    console.log('🎯 Filter results:', {
-      totalIncome: this.allIncome.length,
-      filteredIncome: this.filteredIncome.length,
-      totalExpenses: this.allExpenses.length,
-      filteredExpenses: this.filteredExpenses.length,
-      dateRange: `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`,
-      selectedCategory: this.selectedCategory,
-    });
-
-    // Let's also check a few sample dates
-    if (this.allIncome.length > 0) {
-      console.log(
-        '📅 Sample income dates:',
-        this.allIncome.slice(0, 3).map((i) => ({
-          description: i.description,
-          date: i.date,
-          dateType: typeof i.date,
-        }))
-      );
-    }
   }
 
   /**
@@ -627,5 +662,20 @@ export class Reports implements OnInit, OnDestroy {
   printReport(): void {
     console.log('Printing report...');
     window.print();
+  }
+
+  /**
+   * Extract available categories from expense data for filtering
+   */
+  private extractCategories(): void {
+    // Get unique categories from all expenses
+    const categories = new Set(
+      this.allExpenses.map((expense) => expense.category)
+    );
+
+    // Convert to array and add 'all' option at the beginning
+    this.availableCategories = ['all', ...Array.from(categories)];
+
+    console.log('📋 Available categories extracted:', this.availableCategories);
   }
 }

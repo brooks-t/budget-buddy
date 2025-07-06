@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 
-// NEW: Import and register Chart.js components
+// NEW: Import and register Chart.js components - Now with Filler plugin
 import {
   Chart,
   ArcElement,
@@ -19,6 +19,7 @@ import {
   PieController,
   LineController,
   BarController,
+  Filler, // NEW: Add the Filler plugin for area charts
 } from 'chart.js';
 
 import {
@@ -27,7 +28,7 @@ import {
   BudgetProgress,
 } from '../../services/financial-data';
 
-// Register Chart.js components
+// Register Chart.js components - Now includes Filler plugin
 Chart.register(
   ArcElement,
   LineElement,
@@ -40,7 +41,8 @@ Chart.register(
   Legend,
   PieController,
   LineController,
-  BarController
+  BarController,
+  Filler // NEW: Register the Filler plugin for area charts
 );
 
 /**

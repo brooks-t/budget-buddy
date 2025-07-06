@@ -18,6 +18,7 @@
         <div class="filter-group">
           <label for="timeRange">Time Period</label>
           <select id="timeRange" class="form-control" [(ngModel)]="selectedTimeRange" (change)="onTimeRangeChange()">
+            <option value="alltime">All Time</option>
             <option value="last30days">Last 30 Days</option>
             <option value="last3months">Last 3 Months</option>
             <option value="last6months">Last 6 Months</option>
