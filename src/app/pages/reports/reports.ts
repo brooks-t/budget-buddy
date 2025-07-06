@@ -182,11 +182,25 @@ export class Reports implements OnInit, OnDestroy {
 
   constructor(private financialDataService: FinancialData) {
     console.log('Reports component initialized');
+
+    // TEMPORARY: Add this debugging code
+    console.log('Testing service access...');
+    console.log('Income data:', this.financialDataService.getCurrentIncome());
+    console.log(
+      'Expense data:',
+      this.financialDataService.getCurrentExpenses()
+    );
   }
 
   ngOnInit(): void {
     this.loadFinancialData();
     this.initializeDateRange();
+
+    // Add this: Force an initial update after a short delay
+    setTimeout(() => {
+      console.log('🚀 Force updating reports after initialization...');
+      this.updateReports();
+    }, 500);
   }
 
   ngOnDestroy(): void {
@@ -201,8 +215,9 @@ export class Reports implements OnInit, OnDestroy {
     // Subscribe to income data
     const incomeSubscription = this.financialDataService.income$.subscribe({
       next: (income) => {
+        console.log('Income data loaded:', income.length, 'entries');
         this.allIncome = income;
-        this.updateReports();
+        this.checkAndUpdateReports(); // NEW: Check if all data is loaded
       },
       error: (error) => {
         console.error('Error loading income data:', error);
@@ -212,9 +227,10 @@ export class Reports implements OnInit, OnDestroy {
     // Subscribe to expense data
     const expenseSubscription = this.financialDataService.expenses$.subscribe({
       next: (expenses) => {
+        console.log('Expense data loaded:', expenses.length, 'entries');
         this.allExpenses = expenses;
         this.extractCategories();
-        this.updateReports();
+        this.checkAndUpdateReports(); // NEW: Check if all data is loaded
       },
       error: (error) => {
         console.error('Error loading expense data:', error);
@@ -225,6 +241,7 @@ export class Reports implements OnInit, OnDestroy {
     const budgetSubscription = this.financialDataService.budgetGoals$.subscribe(
       {
         next: (goals) => {
+          console.log('Budget goals loaded:', goals.length, 'entries');
           this.budgetGoals = goals;
         },
         error: (error) => {
@@ -238,6 +255,17 @@ export class Reports implements OnInit, OnDestroy {
       expenseSubscription,
       budgetSubscription
     );
+  }
+
+  /**
+   * NEW: Only update reports when we have both income and expense data
+   */
+  private checkAndUpdateReports(): void {
+    if (this.allIncome.length > 0 && this.allExpenses.length > 0) {
+      console.log('All data loaded, updating reports...');
+      console.log('Date range:', this.customStartDate, 'to', this.customEndDate);
+      this.updateReports();
+    }
   }
 
   /**
@@ -260,6 +288,13 @@ export class Reports implements OnInit, OnDestroy {
 
     this.customStartDate = this.formatDateForInput(threeMonthsAgo);
     this.customEndDate = this.formatDateForInput(today);
+
+    console.log(
+      '📅 Initialized date range:',
+      this.customStartDate,
+      'to',
+      this.customEndDate
+    );
   }
 
   /**
@@ -323,10 +358,18 @@ export class Reports implements OnInit, OnDestroy {
    * Filter data based on selected criteria and update all charts
    */
   private updateReports(): void {
+    console.log('🔄 Starting updateReports...');
     this.filterData();
+    console.log('📊 Filtered data:', {
+      income: this.filteredIncome.length,
+      expenses: this.filteredExpenses.length,
+    });
+
     this.updateMonthlyTrendChart();
     this.updateCategoryBreakdownChart();
     this.updateIncomeSourceChart();
+
+    console.log('📈 Charts updated');
   }
 
   /**
@@ -336,10 +379,13 @@ export class Reports implements OnInit, OnDestroy {
     const startDate = new Date(this.customStartDate);
     const endDate = new Date(this.customEndDate);
 
+    console.log('🔍 Filtering data with range:', startDate, 'to', endDate);
+
     // Filter income by date range
     this.filteredIncome = this.allIncome.filter((income) => {
       const incomeDate = new Date(income.date);
-      return incomeDate >= startDate && incomeDate <= endDate;
+      const isInRange = incomeDate >= startDate && incomeDate <= endDate;
+      return isInRange;
     });
 
     // Filter expenses by date range and category
@@ -351,6 +397,27 @@ export class Reports implements OnInit, OnDestroy {
         expense.category === this.selectedCategory;
       return inDateRange && inCategory;
     });
+
+    console.log('🎯 Filter results:', {
+      totalIncome: this.allIncome.length,
+      filteredIncome: this.filteredIncome.length,
+      totalExpenses: this.allExpenses.length,
+      filteredExpenses: this.filteredExpenses.length,
+      dateRange: `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`,
+      selectedCategory: this.selectedCategory,
+    });
+
+    // Let's also check a few sample dates
+    if (this.allIncome.length > 0) {
+      console.log(
+        '📅 Sample income dates:',
+        this.allIncome.slice(0, 3).map((i) => ({
+          description: i.description,
+          date: i.date,
+          dateType: typeof i.date,
+        }))
+      );
+    }
   }
 
   /**
