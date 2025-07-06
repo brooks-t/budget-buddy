@@ -1,14 +1,47 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-// ALTERNATIVE: Try this import if the first one doesn't work
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
+
+// NEW: Import and register Chart.js components
+import {
+  Chart,
+  ArcElement,
+  LineElement,
+  BarElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  PieController,
+  LineController,
+  BarController,
+} from 'chart.js';
+
 import {
   FinancialData,
   Transaction,
   BudgetProgress,
 } from '../../services/financial-data';
+
+// Register Chart.js components
+Chart.register(
+  ArcElement,
+  LineElement,
+  BarElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  PieController,
+  LineController,
+  BarController
+);
 
 /**
  * Enhanced Dashboard Component - Now with visual analytics and charts
@@ -24,7 +57,7 @@ import {
   selector: 'app-dashboard',
   imports: [
     CommonModule, // Provides *ngFor, *ngIf, and built-in pipes
-    BaseChartDirective, // Alternative import for chart functionality
+    BaseChartDirective, // Chart directive for rendering charts
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
@@ -313,34 +346,108 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Update income vs expenses trend chart
+   * NEW: Update income vs expenses trend chart - Now shows monthly trends
    */
   private updateTrendChart(): void {
-    // For now, we'll show current month data
-    // In a real app, you'd calculate historical data
-    const currentMonth = new Date().toLocaleDateString('en-US', {
-      month: 'short',
-    });
+    // Calculate last 6 months of data for meaningful trends
+    const monthsToShow = 6;
+    const monthLabels: string[] = [];
+    const monthlyIncomeData: number[] = [];
+    const monthlyExpenseData: number[] = [];
 
+    // Get current date
+    const currentDate = new Date();
+
+    // Loop through the last 6 months
+    for (let i = monthsToShow - 1; i >= 0; i--) {
+      const targetDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - i,
+        1
+      );
+      const monthLabel = targetDate.toLocaleDateString('en-US', {
+        month: 'short',
+        year: '2-digit',
+      });
+      monthLabels.push(monthLabel);
+
+      // Calculate income for this month
+      const monthlyIncome = this.calculateMonthlyTotal('income', targetDate);
+      monthlyIncomeData.push(monthlyIncome);
+
+      // Calculate expenses for this month
+      const monthlyExpenses = this.calculateMonthlyTotal(
+        'expenses',
+        targetDate
+      );
+      monthlyExpenseData.push(monthlyExpenses);
+    }
+
+    // Update the chart data with monthly trends
     this.trendChartData = {
-      labels: [currentMonth],
+      labels: monthLabels,
       datasets: [
         {
           label: 'Income',
-          data: [this.totalIncome],
+          data: monthlyIncomeData,
           borderColor: '#48bb78',
           backgroundColor: 'rgba(72, 187, 120, 0.1)',
           tension: 0.4,
+          fill: true, // Add area fill for better visual
         },
         {
           label: 'Expenses',
-          data: [this.totalExpenses],
+          data: monthlyExpenseData,
           borderColor: '#f56565',
           backgroundColor: 'rgba(245, 101, 101, 0.1)',
           tension: 0.4,
+          fill: true, // Add area fill for better visual
         },
       ],
     };
+
+    console.log('Trend chart updated with monthly data:', {
+      labels: monthLabels,
+      income: monthlyIncomeData,
+      expenses: monthlyExpenseData,
+    });
+  }
+
+  /**
+   * NEW: Helper method to calculate monthly totals for income or expenses
+   */
+  private calculateMonthlyTotal(
+    type: 'income' | 'expenses',
+    targetDate: Date
+  ): number {
+    const targetMonth = targetDate.getMonth();
+    const targetYear = targetDate.getFullYear();
+
+    if (type === 'income') {
+      // Get current income data from the service
+      const currentIncome = this.financialDataService.getCurrentIncome();
+      return currentIncome
+        .filter((income) => {
+          const incomeDate = new Date(income.date);
+          return (
+            incomeDate.getMonth() === targetMonth &&
+            incomeDate.getFullYear() === targetYear
+          );
+        })
+        .reduce((sum, income) => sum + income.amount, 0);
+    } else {
+      // Get current expense data from the service
+      const currentExpenses = this.financialDataService.getCurrentExpenses();
+      return currentExpenses
+        .filter((expense) => {
+          const expenseDate = new Date(expense.date);
+          return (
+            expenseDate.getMonth() === targetMonth &&
+            expenseDate.getFullYear() === targetYear
+          );
+        })
+        .reduce((sum, expense) => sum + expense.amount, 0);
+    }
   }
 
   // Existing event handler methods
