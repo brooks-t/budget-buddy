@@ -1,108 +1,210 @@
-<!-- Dashboard Template - This demonstrates Angular's template syntax -->
+<!-- Enhanced Dashboard Template - Now with visual analytics and charts -->
 <div class="dashboard-container">
 
-  <!-- Page Header Section -->
+  <!-- Page Header -->
   <header class="page-header">
-    <h1>Financial Dashboard</h1>
-    <p>Welcome back! Here's your current financial overview.</p>
+    <h1>Dashboard</h1>
+    <p>Your financial overview at a glance</p>
   </header>
 
-  <!-- Financial Summary Cards - Shows data binding and computed properties -->
-  <section class="summary-section">
-    <h2>Financial Summary</h2>
+  <!-- Financial Overview Cards -->
+  <section class="overview-section">
+    <div class="overview-grid">
 
-    <div class="summary-cards">
-      <!-- Income Card -->
-      <div class="card summary-card income-card">
-        <div class="card-header">
-          <span class="card-icon">💵</span>
+      <!-- Total Income Card -->
+      <div class="card overview-card income-card">
+        <div class="card-icon">💰</div>
+        <div class="card-content">
           <h3>Total Income</h3>
+          <p class="amount positive">{{ totalIncome | currency }}</p>
         </div>
-        <!-- Data binding with pipe for currency formatting -->
-        <div class="card-amount positive">{{ totalIncome | currency }}</div>
-        <div class="card-subtitle">This month</div>
       </div>
 
-      <!-- Expenses Card -->
-      <div class="card summary-card expense-card">
-        <div class="card-header">
-          <span class="card-icon">💳</span>
+      <!-- Total Expenses Card -->
+      <div class="card overview-card expense-card">
+        <div class="card-icon">💳</div>
+        <div class="card-content">
           <h3>Total Expenses</h3>
+          <p class="amount negative">{{ totalExpenses | currency }}</p>
         </div>
-        <div class="card-amount negative">{{ totalExpenses | currency }}</div>
-        <div class="card-subtitle">This month</div>
       </div>
 
-      <!-- Savings Card - Shows computed property -->
-      <div class="card summary-card savings-card">
-        <div class="card-header">
-          <span class="card-icon">💰</span>
+      <!-- Net Savings Card -->
+      <div class="card overview-card savings-card">
+        <div class="card-icon">💵</div>
+        <div class="card-content">
           <h3>Net Savings</h3>
+          <p class="amount" [class.positive]="totalSavings >= 0" [class.negative]="totalSavings < 0">
+            {{ totalSavings | currency }}
+          </p>
         </div>
-        <!-- Uses our computed property getter -->
-        <div class="card-amount" [class]="getTransactionClass(totalSavings)">
-          {{ totalSavings | currency }}
+      </div>
+
+      <!-- Budget Health Card -->
+      <div class="card overview-card budget-card">
+        <div class="card-icon">🎯</div>
+        <div class="card-content">
+          <h3>Budget Health</h3>
+          <p class="budget-status" [style.color]="budgetHealthColor">
+            {{ budgetHealthStatus }}
+          </p>
         </div>
-        <div class="card-subtitle">This month</div>
       </div>
     </div>
   </section>
 
-  <!-- Quick Actions Section - Shows event binding -->
-  <section class="quick-actions-section">
-    <h2>Quick Actions</h2>
-    <div class="action-buttons">
-      <!-- Event binding with (click) - calls our component methods -->
-      <button class="btn btn-primary" (click)="onAddIncome()">
-        <span class="btn-icon">➕</span>
-        Add Income
-      </button>
+  <!-- Charts Section -->
+  <section class="charts-section">
+    <div class="charts-grid">
 
-      <button class="btn btn-secondary" (click)="onAddExpense()">
-        <span class="btn-icon">➖</span>
-        Add Expense
-      </button>
+      <!-- Expense Breakdown Pie Chart -->
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3>Expenses by Category</h3>
+          <p>Current month breakdown</p>
+        </div>
+        <div class="chart-container" *ngIf="expenseChartData.labels && expenseChartData.labels.length > 0">
+          <canvas baseChart [data]="expenseChartData" [options]="pieChartOptions" type="pie">
+          </canvas>
+        </div>
+        <!-- Empty state when no expense data -->
+        <div class="chart-empty" *ngIf="!expenseChartData.labels || expenseChartData.labels.length === 0">
+          <span class="empty-icon">📊</span>
+          <p>No expenses recorded this month</p>
+          <small>Add some expenses to see the breakdown</small>
+        </div>
+      </div>
 
-      <button class="btn btn-secondary" (click)="onViewReports()">
-        <span class="btn-icon">📊</span>
-        View Reports
-      </button>
+      <!-- Income vs Expenses Trend Chart -->
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3>Income vs Expenses</h3>
+          <p>Financial trend overview</p>
+        </div>
+        <div class="chart-container" *ngIf="totalIncome > 0 || totalExpenses > 0">
+          <canvas baseChart [data]="trendChartData" [options]="lineChartOptions" type="line">
+          </canvas>
+        </div>
+        <!-- Empty state when no financial data -->
+        <div class="chart-empty" *ngIf="totalIncome === 0 && totalExpenses === 0">
+          <span class="empty-icon">📈</span>
+          <p>No financial data available</p>
+          <small>Add income and expenses to see trends</small>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- Recent Transactions Section - Shows *ngFor structural directive -->
-  <section class="transactions-section">
-    <h2>Recent Transactions</h2>
+  <!-- Budget Progress Section -->
+  <section class="budget-progress-section" *ngIf="budgetProgress.length > 0">
+    <div class="card">
+      <div class="section-header">
+        <h3>Budget Progress</h3>
+        <p>Track your spending against budget goals</p>
+      </div>
 
-    <div class="card transactions-card">
-      <!-- *ngFor directive - loops through our transactions array -->
-      <div class="transaction-list">
-        <div class="transaction-item" *ngFor="let transaction of recentTransactions"
-          [class.income-item]="transaction.type === 'income'" [class.expense-item]="transaction.type === 'expense'">
+      <div class="progress-list">
+        <!-- Loop through budget progress for each category -->
+        <div class="progress-item" *ngFor="let progress of budgetProgress">
 
-          <!-- Transaction icon and info -->
-          <div class="transaction-left">
-            <span class="transaction-icon">{{ getTransactionIcon(transaction.type) }}</span>
-            <div class="transaction-details">
-              <div class="transaction-description">{{ transaction.description }}</div>
-              <div class="transaction-meta">
-                <span class="transaction-category">{{ transaction.category }}</span>
-                <span class="transaction-date">{{ transaction.date | date:'short' }}</span>
-              </div>
+          <!-- Progress Header -->
+          <div class="progress-header">
+            <span class="category-name">{{ progress.category }}</span>
+            <div class="progress-amounts">
+              <span class="spent-amount">${{ progress.currentSpent | number:'1.2-2' }}</span>
+              <span class="budget-limit">/ ${{ progress.monthlyLimit | number:'1.2-2' }}</span>
             </div>
           </div>
 
-          <!-- Transaction amount with conditional styling -->
-          <div class="transaction-amount" [class]="getTransactionClass(transaction.amount)">
+          <!-- Progress Bar -->
+          <div class="progress-bar-container">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="progress.percentageUsed > 100 ? 100 : progress.percentageUsed"
+                [style.background-color]="progress.isOverBudget ? '#f56565' : progress.percentageUsed >= 80 ? '#ed8936' : '#48bb78'">
+              </div>
+            </div>
+            <span class="progress-percentage">{{ progress.percentageUsed }}%</span>
+          </div>
+
+          <!-- Status Badge -->
+          <div class="progress-status">
+            <span class="status-badge"
+              [style.background-color]="progress.isOverBudget ? '#fed7d7' : progress.percentageUsed >= 80 ? '#feebc8' : '#c6f6d5'"
+              [style.color]="progress.isOverBudget ? '#c53030' : progress.percentageUsed >= 80 ? '#c05621' : '#22543d'">
+              {{ progress.isOverBudget ? 'Over Budget' : progress.percentageUsed >= 80 ? 'Near Limit' : 'On Track' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Transactions Section -->
+  <section class="transactions-section">
+    <div class="card">
+      <div class="section-header">
+        <h3>Recent Transactions</h3>
+        <p>Your latest financial activity</p>
+      </div>
+
+      <!-- Transactions List -->
+      <div class="transactions-list" *ngIf="recentTransactions.length > 0">
+        <div class="transaction-item" *ngFor="let transaction of recentTransactions">
+          <div class="transaction-icon">
+            {{ getTransactionIcon(transaction.type) }}
+          </div>
+          <div class="transaction-details">
+            <div class="transaction-description">{{ transaction.description }}</div>
+            <div class="transaction-category">{{ transaction.category }}</div>
+            <div class="transaction-date">{{ transaction.date | date:'mediumDate' }}</div>
+          </div>
+          <div class="transaction-amount" [ngClass]="getTransactionClass(transaction.amount)">
             {{ transaction.amount | currency }}
           </div>
         </div>
       </div>
 
-      <!-- Show a message if no transactions exist -->
-      <div class="no-transactions" *ngIf="recentTransactions.length === 0">
-        <p>No recent transactions to display.</p>
-        <button class="btn btn-primary" (click)="onAddIncome()">Add Your First Transaction</button>
+      <!-- Empty state for transactions -->
+      <div class="transactions-empty" *ngIf="recentTransactions.length === 0">
+        <span class="empty-icon">📝</span>
+        <h4>No transactions yet</h4>
+        <p>Start by adding your income and expenses to see them here</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions Section -->
+  <section class="actions-section">
+    <div class="card">
+      <div class="section-header">
+        <h3>Quick Actions</h3>
+        <p>Manage your finances efficiently</p>
+      </div>
+
+      <div class="actions-grid">
+        <button class="action-btn income-btn" (click)="onAddIncome()">
+          <span class="action-icon">💰</span>
+          <div class="action-content">
+            <h4>Add Income</h4>
+            <p>Record new income entry</p>
+          </div>
+        </button>
+
+        <button class="action-btn expense-btn" (click)="onAddExpense()">
+          <span class="action-icon">💳</span>
+          <div class="action-content">
+            <h4>Add Expense</h4>
+            <p>Log a new expense</p>
+          </div>
+        </button>
+
+        <button class="action-btn reports-btn" (click)="onViewReports()">
+          <span class="action-icon">📊</span>
+          <div class="action-content">
+            <h4>View Reports</h4>
+            <p>Detailed financial analysis</p>
+          </div>
+        </button>
       </div>
     </div>
   </section>
