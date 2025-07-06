@@ -1,1 +1,273 @@
-<p>reports works!</p>
+<!-- Reports & Analytics Template - Advanced data visualization and filtering -->
+<div class="reports-container">
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>Reports & Analytics</h1>
+    <p>Comprehensive financial analysis with advanced filtering and insights</p>
+  </header>
+
+  <!-- Filter Controls Section -->
+  <section class="filters-section">
+    <div class="card filters-card">
+      <h2>Filter Reports</h2>
+
+      <div class="filters-grid">
+
+        <!-- Time Range Selection -->
+        <div class="filter-group">
+          <label for="timeRange">Time Period</label>
+          <select id="timeRange" class="form-control" [(ngModel)]="selectedTimeRange" (change)="onTimeRangeChange()">
+            <option value="last30days">Last 30 Days</option>
+            <option value="last3months">Last 3 Months</option>
+            <option value="last6months">Last 6 Months</option>
+            <option value="lastyear">Last Year</option>
+            <option value="custom">Custom Range</option>
+          </select>
+        </div>
+
+        <!-- Custom Date Range (shown when "Custom Range" is selected) -->
+        <div class="filter-group custom-dates" *ngIf="selectedTimeRange === 'custom'">
+          <label for="startDate">Start Date</label>
+          <input type="date" id="startDate" class="form-control" [(ngModel)]="customStartDate"
+            (change)="onFilterChange()">
+        </div>
+
+        <div class="filter-group custom-dates" *ngIf="selectedTimeRange === 'custom'">
+          <label for="endDate">End Date</label>
+          <input type="date" id="endDate" class="form-control" [(ngModel)]="customEndDate" (change)="onFilterChange()">
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-group">
+          <label for="categoryFilter">Category</label>
+          <select id="categoryFilter" class="form-control" [(ngModel)]="selectedCategory" (change)="onFilterChange()">
+            <option *ngFor="let category of availableCategories" [value]="category">
+              {{ category === 'all' ? 'All Categories' : category }}
+            </option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Summary Statistics Section -->
+  <section class="summary-section">
+    <div class="summary-grid">
+
+      <!-- Total Income -->
+      <div class="card summary-card income-summary">
+        <div class="summary-header">
+          <span class="summary-icon">💰</span>
+          <h3>Total Income</h3>
+        </div>
+        <div class="summary-amount positive">
+          {{ summaryStats.totalIncome | currency }}
+        </div>
+        <div class="summary-detail">
+          Avg. Monthly: {{ summaryStats.averageMonthlyIncome | currency }}
+        </div>
+      </div>
+
+      <!-- Total Expenses -->
+      <div class="card summary-card expense-summary">
+        <div class="summary-header">
+          <span class="summary-icon">💳</span>
+          <h3>Total Expenses</h3>
+        </div>
+        <div class="summary-amount negative">
+          {{ summaryStats.totalExpenses | currency }}
+        </div>
+        <div class="summary-detail">
+          Avg. Monthly: {{ summaryStats.averageMonthlyExpenses | currency }}
+        </div>
+      </div>
+
+      <!-- Net Savings -->
+      <div class="card summary-card savings-summary">
+        <div class="summary-header">
+          <span class="summary-icon">💵</span>
+          <h3>Net Savings</h3>
+        </div>
+        <div class="summary-amount" [class.positive]="summaryStats.netSavings >= 0"
+          [class.negative]="summaryStats.netSavings < 0">
+          {{ summaryStats.netSavings | currency }}
+        </div>
+        <div class="summary-detail">
+          Savings Rate: {{ summaryStats.savingsRate | number:'1.1-1' }}%
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Charts Section -->
+  <section class="charts-section">
+
+    <!-- Monthly Trend Chart -->
+    <div class="card chart-card wide-chart">
+      <div class="chart-header">
+        <h3>Income vs Expenses Trend</h3>
+        <p>Monthly comparison over the selected time period</p>
+      </div>
+
+      <div class="chart-container" *ngIf="monthlyTrendChart.labels && monthlyTrendChart.labels.length > 0">
+        <canvas baseChart [data]="monthlyTrendChart" [options]="lineChartOptions" type="line">
+        </canvas>
+      </div>
+
+      <!-- Empty state for trend chart -->
+      <div class="chart-empty" *ngIf="!monthlyTrendChart.labels || monthlyTrendChart.labels.length === 0">
+        <span class="empty-icon">📈</span>
+        <p>No data available for the selected time period</p>
+        <small>Adjust your filters to see trend analysis</small>
+      </div>
+    </div>
+
+    <!-- Charts Grid for Category and Income Source -->
+    <div class="charts-grid">
+
+      <!-- Category Breakdown Bar Chart -->
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3>Spending by Category</h3>
+          <p>Expense breakdown for selected period</p>
+        </div>
+
+        <div class="chart-container" *ngIf="categoryBreakdownChart.labels && categoryBreakdownChart.labels.length > 0">
+          <canvas baseChart [data]="categoryBreakdownChart" [options]="barChartOptions" type="bar">
+          </canvas>
+        </div>
+
+        <!-- Empty state for category chart -->
+        <div class="chart-empty" *ngIf="!categoryBreakdownChart.labels || categoryBreakdownChart.labels.length === 0">
+          <span class="empty-icon">📊</span>
+          <p>No expenses in selected period</p>
+          <small>Add expenses to see category breakdown</small>
+        </div>
+      </div>
+
+      <!-- Income Source Pie Chart -->
+      <div class="card chart-card">
+        <div class="chart-header">
+          <h3>Income Sources</h3>
+          <p>Income distribution by source</p>
+        </div>
+
+        <div class="chart-container" *ngIf="incomeSourceChart.labels && incomeSourceChart.labels.length > 0">
+          <canvas baseChart [data]="incomeSourceChart" [options]="pieChartOptions" type="pie">
+          </canvas>
+        </div>
+
+        <!-- Empty state for income chart -->
+        <div class="chart-empty" *ngIf="!incomeSourceChart.labels || incomeSourceChart.labels.length === 0">
+          <span class="empty-icon">💰</span>
+          <p>No income in selected period</p>
+          <small>Add income entries to see source breakdown</small>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Detailed Data Table Section -->
+  <section class="data-table-section">
+    <div class="card">
+      <div class="table-header">
+        <h3>Transaction Details</h3>
+        <p>Complete list of filtered transactions</p>
+      </div>
+
+      <!-- Combined Transactions Table -->
+      <div class="table-container" *ngIf="filteredIncome.length > 0 || filteredExpenses.length > 0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Category/Source</th>
+              <th class="amount-column">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <!-- Income Entries -->
+            <tr *ngFor="let income of filteredIncome" class="income-row">
+              <td>{{ income.date | date:'shortDate' }}</td>
+              <td>
+                <span class="transaction-type income-type">Income</span>
+              </td>
+              <td>{{ income.description }}</td>
+              <td>{{ income.source }}</td>
+              <td class="amount-column positive">{{ income.amount | currency }}</td>
+            </tr>
+
+            <!-- Expense Entries -->
+            <tr *ngFor="let expense of filteredExpenses" class="expense-row">
+              <td>{{ expense.date | date:'shortDate' }}</td>
+              <td>
+                <span class="transaction-type expense-type">Expense</span>
+              </td>
+              <td>{{ expense.description }}</td>
+              <td>{{ expense.category }}</td>
+              <td class="amount-column negative">-{{ expense.amount | currency }}</td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state for transactions table -->
+      <div class="table-empty" *ngIf="filteredIncome.length === 0 && filteredExpenses.length === 0">
+        <span class="empty-icon">📝</span>
+        <h4>No transactions found</h4>
+        <p>Try adjusting your filters to see more data, or add some income and expenses to get started.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Export Actions Section -->
+  <section class="export-section">
+    <div class="card">
+      <div class="export-header">
+        <h3>Export Reports</h3>
+        <p>Download or print your financial analysis</p>
+      </div>
+
+      <div class="export-actions">
+
+        <!-- CSV Export Button -->
+        <button class="export-btn csv-btn" (click)="exportToCSV()">
+          <span class="export-icon">📊</span>
+          <div class="export-content">
+            <h4>Export to CSV</h4>
+            <p>Download transaction data for spreadsheet analysis</p>
+          </div>
+        </button>
+
+        <!-- PDF Report Button -->
+        <button class="export-btn pdf-btn" (click)="generatePDFReport()">
+          <span class="export-icon">📄</span>
+          <div class="export-content">
+            <h4>Generate PDF Report</h4>
+            <p>Create a comprehensive financial report document</p>
+          </div>
+        </button>
+
+        <!-- Print Button -->
+        <button class="export-btn print-btn" (click)="printReport()">
+          <span class="export-icon">🖨️</span>
+          <div class="export-content">
+            <h4>Print Report</h4>
+            <p>Print the current report for physical records</p>
+          </div>
+        </button>
+
+      </div>
+    </div>
+  </section>
+
+</div>
