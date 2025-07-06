@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { StorageService } from './storage'; // ✅ Fixed: Remove .service suffix
 
 /**
  * Financial Data Service - Now with Budget Goals support and dummy data for development
@@ -57,29 +58,60 @@ export interface ExpenseEntry {
   providedIn: 'root',
 })
 export class FinancialData {
-  // TEMPORARY: Initialize with dummy data for development
-  private incomeSubject = new BehaviorSubject<IncomeEntry[]>(
-    this.createDummyIncome()
-  );
-  private expensesSubject = new BehaviorSubject<ExpenseEntry[]>(
-    this.createDummyExpenses()
-  );
-  private budgetGoalsSubject = new BehaviorSubject<BudgetGoal[]>(
-    this.createDummyBudgetGoals()
-  );
+  // Storage keys for different data types
+  private readonly STORAGE_KEYS = {
+    income: 'budget_buddy_income',
+    expenses: 'budget_buddy_expenses',
+    budgetGoals: 'budget_buddy_goals',
+  };
+
+  // ✅ Fix: Initialize BehaviorSubjects with empty arrays first
+  private incomeSubject = new BehaviorSubject<IncomeEntry[]>([]);
+  private expensesSubject = new BehaviorSubject<ExpenseEntry[]>([]);
+  private budgetGoalsSubject = new BehaviorSubject<BudgetGoal[]>([]);
 
   // Public observables...
   public income$ = this.incomeSubject.asObservable();
   public expenses$ = this.expensesSubject.asObservable();
   public budgetGoals$ = this.budgetGoalsSubject.asObservable();
 
-  constructor() {
-    console.log(
-      'FinancialData service initialized with DUMMY DATA for development'
+  // Inject the storage service
+  constructor(private storageService: StorageService) {
+    console.log('FinancialData service initialized with persistent storage');
+
+    // ✅ Fix: Load data AFTER the constructor has run
+    this.initializeData();
+  }
+
+  /**
+   * Initialize data after the service is fully constructed
+   * This ensures the StorageService is available before we try to use it
+   */
+  private initializeData(): void {
+    console.log('Initializing financial data...');
+
+    // Load existing data or create dummy data
+    const existingIncome = this.loadFromStorage<IncomeEntry[]>(
+      this.STORAGE_KEYS.income
     );
-    console.log('Income entries:', this.incomeSubject.getValue());
-    console.log('Expense entries:', this.expensesSubject.getValue());
-    console.log('Budget goals:', this.budgetGoalsSubject.getValue());
+    const existingExpenses = this.loadFromStorage<ExpenseEntry[]>(
+      this.STORAGE_KEYS.expenses
+    );
+    const existingGoals = this.loadFromStorage<BudgetGoal[]>(
+      this.STORAGE_KEYS.budgetGoals
+    );
+
+    // Set initial data
+    this.incomeSubject.next(existingIncome || this.createDummyIncome());
+    this.expensesSubject.next(existingExpenses || this.createDummyExpenses());
+    this.budgetGoalsSubject.next(
+      existingGoals || this.createDummyBudgetGoals()
+    );
+
+    // Set up auto-save after initial data is loaded
+    this.setupAutoSave();
+
+    console.log('Financial data initialization complete');
   }
 
   /**
@@ -598,5 +630,157 @@ export class FinancialData {
         expenseSubscription.unsubscribe();
       };
     });
+  }
+
+  /**
+   * Load data from storage with proper date conversion
+   * This handles the fact that JSON.parse doesn't restore Date objects
+   */
+  private loadFromStorage<T>(key: string): T | null {
+    const data = this.storageService.getItem<T>(key);
+
+    if (data && key === this.STORAGE_KEYS.income) {
+      // Convert date strings back to Date objects for income
+      return (data as any).map((item: any) => ({
+        ...item,
+        date: new Date(item.date),
+      })) as T;
+    }
+
+    if (data && key === this.STORAGE_KEYS.expenses) {
+      // Convert date strings back to Date objects for expenses
+      return (data as any).map((item: any) => ({
+        ...item,
+        date: new Date(item.date),
+      })) as T;
+    }
+
+    if (data && key === this.STORAGE_KEYS.budgetGoals) {
+      // Convert date strings back to Date objects for budget goals
+      return (data as any).map((item: any) => ({
+        ...item,
+        createdDate: new Date(item.createdDate),
+      })) as T;
+    }
+
+    return data;
+  }
+
+  /**
+   * Save data to storage whenever BehaviorSubjects change
+   * This creates automatic persistence without manual save calls
+   */
+  private setupAutoSave(): void {
+    // Auto-save income data
+    this.income$.subscribe((income) => {
+      this.storageService.setItem(this.STORAGE_KEYS.income, income);
+    });
+
+    // Auto-save expense data
+    this.expenses$.subscribe((expenses) => {
+      this.storageService.setItem(this.STORAGE_KEYS.expenses, expenses);
+    });
+
+    // Auto-save budget goals
+    this.budgetGoals$.subscribe((goals) => {
+      this.storageService.setItem(this.STORAGE_KEYS.budgetGoals, goals);
+    });
+  }
+
+  /**
+   * Initialize storage with dummy data if no existing data found
+   * This provides a good user experience for first-time users
+   */
+  private initializeStorageIfEmpty(): void {
+    const hasIncomeData = this.storageService.getItem(this.STORAGE_KEYS.income);
+    const hasExpenseData = this.storageService.getItem(
+      this.STORAGE_KEYS.expenses
+    );
+    const hasGoalsData = this.storageService.getItem(
+      this.STORAGE_KEYS.budgetGoals
+    );
+
+    if (!hasIncomeData || !hasExpenseData || !hasGoalsData) {
+      console.log('No existing data found, initializing with sample data');
+      // The BehaviorSubjects already have dummy data,
+      // so the auto-save will persist it automatically
+    } else {
+      console.log('Existing data loaded from storage');
+    }
+  }
+
+  /**
+   * Manual backup method - exports all data as JSON
+   * This could be enhanced to create downloadable backup files
+   */
+  exportAllData(): {
+    income: IncomeEntry[];
+    expenses: ExpenseEntry[];
+    budgetGoals: BudgetGoal[];
+  } {
+    return {
+      income: this.getCurrentIncome(),
+      expenses: this.getCurrentExpenses(),
+      budgetGoals: this.getCurrentBudgetGoals(),
+    };
+  }
+
+  /**
+   * Manual restore method - imports data from backup
+   * This could be enhanced to accept uploaded backup files
+   */
+  importAllData(data: {
+    income: IncomeEntry[];
+    expenses: ExpenseEntry[];
+    budgetGoals: BudgetGoal[];
+  }): boolean {
+    try {
+      // Convert date strings to Date objects if needed
+      const processedIncome = data.income.map((item) => ({
+        ...item,
+        date: new Date(item.date),
+      }));
+
+      const processedExpenses = data.expenses.map((item) => ({
+        ...item,
+        date: new Date(item.date),
+      }));
+
+      const processedGoals = data.budgetGoals.map((item) => ({
+        ...item,
+        createdDate: new Date(item.createdDate),
+      }));
+
+      // Update all BehaviorSubjects (auto-save will handle storage)
+      this.incomeSubject.next(processedIncome);
+      this.expensesSubject.next(processedExpenses);
+      this.budgetGoalsSubject.next(processedGoals);
+
+      console.log('Data import completed successfully');
+      return true;
+    } catch (error) {
+      console.error('Failed to import data:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Reset all data - useful for testing or starting fresh
+   */
+  resetAllData(): boolean {
+    try {
+      this.storageService.clearAllData();
+
+      // Reset to fresh dummy data
+      this.incomeSubject.next(this.createDummyIncome());
+      this.expensesSubject.next(this.createDummyExpenses());
+      this.budgetGoalsSubject.next(this.createDummyBudgetGoals());
+
+      console.log('All data reset to defaults');
+      return true;
+    } catch (error) {
+      console.error('Failed to reset data:', error);
+      return false;
+    }
   }
 }

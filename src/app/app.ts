@@ -1,13 +1,14 @@
-import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import {
+  RouterOutlet,
+  RouterLink,
+  RouterLinkActive,
+  Router,
+} from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 /**
  * Main App Component - The root component that holds our entire Budget Buddy application
- * This component provides:
- * - Navigation header with links to different sections
- * - Router outlet where different pages will be displayed
- * - Consistent layout and styling across the entire app
  */
 @Component({
   selector: 'app-root',
@@ -20,12 +21,11 @@ import { CommonModule } from '@angular/common';
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
+export class App implements OnInit {
   title = 'Budget Buddy';
 
   /**
    * Navigation items for our main menu
-   * Each item has a path (for routing) and label (for display)
    */
   navigationItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
@@ -34,4 +34,19 @@ export class App {
     { path: '/goals', label: 'Goals', icon: '🎯' },
     { path: '/reports', label: 'Reports', icon: '📈' },
   ];
+
+  // Inject the router for debugging
+  constructor(private router: Router) {}
+
+  ngOnInit() {
+    // Debug: Log current route
+    console.log('App component initialized');
+    console.log('Current URL:', this.router.url);
+
+    // Navigate to dashboard if we're at root
+    if (this.router.url === '/') {
+      console.log('Navigating to dashboard...');
+      this.router.navigate(['/dashboard']);
+    }
+  }
 }

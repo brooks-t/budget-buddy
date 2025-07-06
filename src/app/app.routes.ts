@@ -1,56 +1,53 @@
 import { Routes } from '@angular/router';
 
 /**
- * Main application routes for Budget Buddy
- * Each route represents a different section of our personal finance app
+ * Application Routes Configuration
+ *
+ * This defines all the pages/components that users can navigate to
+ * Each route maps a URL path to a specific component
  */
 export const routes: Routes = [
-  // Default route - redirects to dashboard when user visits the root URL
+  // Default route - redirect to dashboard when user visits root URL
   {
     path: '',
     redirectTo: '/dashboard',
     pathMatch: 'full',
   },
 
-  // Dashboard - Main overview page showing financial summary
+  // Dashboard route - shows financial overview
   {
     path: 'dashboard',
     loadComponent: () =>
       import('./pages/dashboard/dashboard').then((m) => m.Dashboard),
-    title: 'Dashboard - Budget Buddy',
   },
 
-  // Income - Track and manage income sources
+  // Income tracking route
   {
     path: 'income',
     loadComponent: () => import('./pages/income/income').then((m) => m.Income),
-    title: 'Income - Budget Buddy',
   },
 
-  // Expenses - Track and categorize spending
+  // Expense tracking route
   {
     path: 'expenses',
     loadComponent: () =>
       import('./pages/expenses/expenses').then((m) => m.Expenses),
-    title: 'Expenses - Budget Buddy',
   },
 
-  // Goals - Set and monitor financial goals
+  // Budget goals route
   {
     path: 'goals',
     loadComponent: () => import('./pages/goals/goals').then((m) => m.Goals),
-    title: 'Goals - Budget Buddy',
   },
 
-  // Reports - View financial insights and analytics
+  // Reports route
   {
     path: 'reports',
     loadComponent: () =>
       import('./pages/reports/reports').then((m) => m.Reports),
-    title: 'Reports - Budget Buddy',
   },
 
-  // Wildcard route - handles invalid URLs by redirecting to dashboard
+  // Catch-all route - redirect any unknown URLs to dashboard
   {
     path: '**',
     redirectTo: '/dashboard',
