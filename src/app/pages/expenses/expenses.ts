@@ -112,9 +112,17 @@ export class Expenses implements OnInit, OnDestroy {
     }
 
     // Sort by date (newest first)
-    return filtered.sort(
+    const result = filtered.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
+
+    // 🔧 FIX: Update analytics whenever filtered data changes
+    // Use setTimeout to avoid calling this during Angular's change detection cycle
+    setTimeout(() => {
+      this.updateCategoryAnalytics();
+    }, 0);
+
+    return result;
   }
 
   /**
@@ -136,6 +144,9 @@ export class Expenses implements OnInit, OnDestroy {
           'Expenses component: Data updated from service',
           expenseData
         );
+
+        // 🔧 FIX: Update analytics whenever expense data changes
+        this.updateCategoryAnalytics();
       },
       error: (error) => {
         console.error('Error getting expense data:', error);
