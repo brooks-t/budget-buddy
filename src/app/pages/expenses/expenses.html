@@ -46,37 +46,6 @@
     </div>
   </section>
 
-  <!-- NEW: Export Actions Section -->
-  <section class="export-section" *ngIf="filteredExpenses.length > 0">
-    <div class="card">
-      <div class="section-header">
-        <h3>🚀 Export & Actions</h3>
-        <p>Professional data management tools</p>
-      </div>
-
-      <div class="export-actions">
-        <button class="export-btn csv-btn" (click)="exportExpenseReport()">
-          <span class="export-icon">📊</span>
-          <div class="export-content">
-            <h4>Export to CSV</h4>
-            <p>Download for spreadsheet analysis</p>
-          </div>
-        </button>
-
-        <!-- Bulk Actions (shown when expenses are selected) -->
-        <div class="bulk-actions" *ngIf="showBulkActions">
-          <button class="export-btn bulk-delete-btn" (click)="onBulkDelete()">
-            <span class="export-icon">🗑️</span>
-            <div class="export-content">
-              <h4>Delete Selected ({{ selectedExpenses.length }})</h4>
-              <p>Remove multiple expenses at once</p>
-            </div>
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- Add New Expense Form -->
   <section class="add-expense-section">
     <div class="card">
