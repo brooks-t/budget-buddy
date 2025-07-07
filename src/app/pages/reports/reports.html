@@ -27,27 +27,65 @@
           </select>
         </div>
 
-        <!-- Custom Date Range (shown when "Custom Range" is selected) -->
-        <div class="filter-group custom-dates" *ngIf="selectedTimeRange === 'custom'">
-          <label for="startDate">Start Date</label>
-          <input type="date" id="startDate" class="form-control" [(ngModel)]="customStartDate"
-            (change)="onFilterChange()">
-        </div>
-
-        <div class="filter-group custom-dates" *ngIf="selectedTimeRange === 'custom'">
-          <label for="endDate">End Date</label>
-          <input type="date" id="endDate" class="form-control" [(ngModel)]="customEndDate" (change)="onFilterChange()">
-        </div>
-
         <!-- Category Filter -->
         <div class="filter-group">
           <label for="categoryFilter">Category</label>
-          <select id="categoryFilter" class="form-control" [(ngModel)]="selectedCategory" (change)="onFilterChange()">
+          <select id="categoryFilter" class="form-control" [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
             <option *ngFor="let category of availableCategories" [value]="category">
               {{ category === 'all' ? 'All Categories' : category }}
             </option>
           </select>
         </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- MOVED: Export Actions Section - Now prominently placed after filters -->
+  <section class="export-section">
+    <div class="card">
+      <div class="section-header">
+        <h3>Export & Share</h3>
+        <p>Download your financial reports in various formats</p>
+      </div>
+
+      <div class="export-actions">
+
+        <!-- CSV Export Button -->
+        <button class="export-btn csv-btn" (click)="exportToCSV()">
+          <span class="export-icon">📊</span>
+          <div class="export-content">
+            <h4>Export to CSV</h4>
+            <p>Download transaction data for spreadsheet analysis</p>
+          </div>
+        </button>
+
+        <!-- PDF Report Button -->
+        <button class="export-btn pdf-btn" (click)="generatePDFReport()">
+          <span class="export-icon">📄</span>
+          <div class="export-content">
+            <h4>Generate PDF Report</h4>
+            <p>Create a comprehensive financial report document</p>
+          </div>
+        </button>
+
+        <!-- Print Button -->
+        <button class="export-btn print-btn" (click)="printReport()">
+          <span class="export-icon">🖨️</span>
+          <div class="export-content">
+            <h4>Print Report</h4>
+            <p>Print the current report for physical records</p>
+          </div>
+        </button>
+
+        <!-- Share Button - NEW -->
+        <button class="export-btn share-btn" (click)="shareReport()">
+          <span class="export-icon">📤</span>
+          <div class="export-content">
+            <h4>Share Report</h4>
+            <p>Generate shareable financial summary</p>
+          </div>
+        </button>
 
       </div>
     </div>
@@ -110,23 +148,21 @@
     <div class="card chart-card wide-chart">
       <div class="chart-header">
         <h3>Income vs Expenses Trend</h3>
-        <p>Monthly comparison over the selected time period</p>
+        <p>Monthly financial performance over time</p>
       </div>
-
       <div class="chart-container" *ngIf="monthlyTrendChart.labels && monthlyTrendChart.labels.length > 0">
         <canvas baseChart [data]="monthlyTrendChart" [options]="lineChartOptions" type="line">
         </canvas>
       </div>
-
       <!-- Empty state for trend chart -->
       <div class="chart-empty" *ngIf="!monthlyTrendChart.labels || monthlyTrendChart.labels.length === 0">
         <span class="empty-icon">📈</span>
-        <p>No data available for the selected time period</p>
+        <p>No data for selected period</p>
         <small>Adjust your filters to see trend analysis</small>
       </div>
     </div>
 
-    <!-- Charts Grid for Category and Income Source -->
+    <!-- Charts Grid for Side-by-Side Charts -->
     <div class="charts-grid">
 
       <!-- Category Breakdown Bar Chart -->
@@ -135,12 +171,10 @@
           <h3>Spending by Category</h3>
           <p>Expense breakdown for selected period</p>
         </div>
-
         <div class="chart-container" *ngIf="categoryBreakdownChart.labels && categoryBreakdownChart.labels.length > 0">
           <canvas baseChart [data]="categoryBreakdownChart" [options]="barChartOptions" type="bar">
           </canvas>
         </div>
-
         <!-- Empty state for category chart -->
         <div class="chart-empty" *ngIf="!categoryBreakdownChart.labels || categoryBreakdownChart.labels.length === 0">
           <span class="empty-icon">📊</span>
@@ -155,12 +189,10 @@
           <h3>Income Sources</h3>
           <p>Income distribution by source</p>
         </div>
-
         <div class="chart-container" *ngIf="incomeSourceChart.labels && incomeSourceChart.labels.length > 0">
           <canvas baseChart [data]="incomeSourceChart" [options]="pieChartOptions" type="pie">
           </canvas>
         </div>
-
         <!-- Empty state for income chart -->
         <div class="chart-empty" *ngIf="!incomeSourceChart.labels || incomeSourceChart.labels.length === 0">
           <span class="empty-icon">💰</span>
@@ -227,47 +259,6 @@
         <p>Try adjusting your filters to see more data, or add some income and expenses to get started.</p>
       </div>
 
-    </div>
-  </section>
-
-  <!-- Export Actions Section -->
-  <section class="export-section">
-    <div class="card">
-      <div class="export-header">
-        <h3>Export Reports</h3>
-        <p>Download or print your financial analysis</p>
-      </div>
-
-      <div class="export-actions">
-
-        <!-- CSV Export Button -->
-        <button class="export-btn csv-btn" (click)="exportToCSV()">
-          <span class="export-icon">📊</span>
-          <div class="export-content">
-            <h4>Export to CSV</h4>
-            <p>Download transaction data for spreadsheet analysis</p>
-          </div>
-        </button>
-
-        <!-- PDF Report Button -->
-        <button class="export-btn pdf-btn" (click)="generatePDFReport()">
-          <span class="export-icon">📄</span>
-          <div class="export-content">
-            <h4>Generate PDF Report</h4>
-            <p>Create a comprehensive financial report document</p>
-          </div>
-        </button>
-
-        <!-- Print Button -->
-        <button class="export-btn print-btn" (click)="printReport()">
-          <span class="export-icon">🖨️</span>
-          <div class="export-content">
-            <h4>Print Report</h4>
-            <p>Print the current report for physical records</p>
-          </div>
-        </button>
-
-      </div>
     </div>
   </section>
 

@@ -413,6 +413,17 @@ export class Reports implements OnInit, OnDestroy {
   }
 
   /**
+   * Handle category filter changes
+   * This method is called when the user selects a different category filter
+   */
+  onCategoryChange(): void {
+    console.log('📂 Category filter changed to:', this.selectedCategory);
+
+    // Update the reports when category selection changes
+    this.updateReports();
+  }
+
+  /**
    * Filter data based on selected criteria and update all charts
    */
   private updateReports(): void {
@@ -701,45 +712,468 @@ export class Reports implements OnInit, OnDestroy {
   }
 
   /**
-   * Export data to CSV format
+   * Export filtered data to CSV format
+   * This demonstrates real file download functionality
    */
   exportToCSV(): void {
-    console.log('Exporting data to CSV...');
-    alert(
-      'CSV Export feature - In a real app, this would download a CSV file with your financial data!'
-    );
+    console.log('🔄 Generating CSV export...');
+
+    try {
+      // Prepare data for CSV export
+      const csvData = this.prepareCsvData();
+
+      // Create CSV content
+      const csvContent = this.convertToCSV(csvData);
+
+      // Create and download the file
+      this.downloadFile(csvContent, 'financial-report.csv', 'text/csv');
+
+      console.log('✅ CSV export completed successfully');
+      this.showSuccessMessage('CSV file downloaded successfully!');
+    } catch (error) {
+      console.error('❌ Error exporting to CSV:', error);
+      this.showErrorMessage('Failed to export CSV file. Please try again.');
+    }
   }
 
   /**
-   * Generate and download PDF report
+   * Generate a comprehensive PDF report
+   * In a real app, this would use a library like jsPDF
    */
   generatePDFReport(): void {
-    console.log('Generating PDF report...');
-    alert(
-      'PDF Report feature - In a real app, this would generate and download a comprehensive PDF report!'
-    );
+    console.log('🔄 Generating PDF report...');
+
+    try {
+      // Prepare report data
+      const reportData = this.prepareReportData();
+
+      // In a real implementation, you would use jsPDF or similar
+      const pdfContent = this.generatePDFContent(reportData);
+
+      // For demonstration, we'll download as text file
+      // In production, this would be a proper PDF
+      this.downloadFile(pdfContent, 'financial-report.pdf', 'application/pdf');
+
+      console.log('✅ PDF report generated successfully');
+      this.showSuccessMessage('PDF report downloaded successfully!');
+    } catch (error) {
+      console.error('❌ Error generating PDF:', error);
+      this.showErrorMessage('Failed to generate PDF report. Please try again.');
+    }
   }
 
   /**
    * Print the current report
+   * Opens browser print dialog with optimized layout
    */
   printReport(): void {
-    console.log('Printing report...');
-    window.print();
+    console.log('🔄 Preparing report for printing...');
+
+    try {
+      // Create a printable version of the report
+      const printContent = this.preparePrintContent();
+
+      // Open new window with print-optimized content
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+
+      if (printWindow) {
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+
+        // Wait for content to load, then print
+        printWindow.onload = () => {
+          printWindow.print();
+          printWindow.close();
+        };
+
+        console.log('✅ Print dialog opened successfully');
+        this.showSuccessMessage('Print dialog opened!');
+      } else {
+        throw new Error('Failed to open print window');
+      }
+    } catch (error) {
+      console.error('❌ Error printing report:', error);
+      this.showErrorMessage(
+        'Failed to open print dialog. Please check your browser settings.'
+      );
+    }
   }
 
   /**
-   * Extract available categories from expense data for filtering
+   * Share report functionality
+   * In a real app, this could integrate with social media or email
+   */
+  shareReport(): void {
+    console.log('🔄 Preparing report for sharing...');
+
+    try {
+      // Prepare shareable summary
+      const shareData = this.prepareShareData();
+
+      // Check if native sharing is available (mobile devices)
+      if (navigator.share) {
+        navigator
+          .share({
+            title: 'My Financial Report',
+            text: shareData.summary,
+            url: window.location.href,
+          })
+          .then(() => {
+            console.log('✅ Report shared successfully');
+          })
+          .catch((error) => {
+            console.log('❌ Error sharing:', error);
+            this.fallbackShare(shareData);
+          });
+      } else {
+        // Fallback for desktop browsers
+        this.fallbackShare(shareData);
+      }
+    } catch (error) {
+      console.error('❌ Error sharing report:', error);
+      this.showErrorMessage('Failed to share report. Please try again.');
+    }
+  }
+
+  /**
+   * Helper method: Prepare data for CSV export
+   */
+  private prepareCsvData(): any[] {
+    const csvData: any[] = [];
+
+    // Add header row
+    csvData.push({
+      Date: 'Date',
+      Type: 'Type',
+      Description: 'Description',
+      Category: 'Category/Source',
+      Amount: 'Amount',
+    });
+
+    // Add income data
+    this.filteredIncome.forEach((income) => {
+      csvData.push({
+        Date: income.date.toLocaleDateString(),
+        Type: 'Income',
+        Description: income.description,
+        Category: income.source,
+        Amount: income.amount,
+      });
+    });
+
+    // Add expense data
+    this.filteredExpenses.forEach((expense) => {
+      csvData.push({
+        Date: expense.date.toLocaleDateString(),
+        Type: 'Expense',
+        Description: expense.description,
+        Category: expense.category,
+        Amount: -expense.amount, // Negative for expenses
+      });
+    });
+
+    return csvData;
+  }
+
+  /**
+   * Helper method: Convert data array to CSV string
+   */
+  private convertToCSV(data: any[]): string {
+    if (data.length === 0) return '';
+
+    const headers = Object.keys(data[0]);
+    const csvContent = [
+      headers.join(','), // Header row
+      ...data.slice(1).map((row) =>
+        headers
+          .map((header) => {
+            const value = row[header];
+            // Escape commas and quotes in CSV data
+            if (
+              typeof value === 'string' &&
+              (value.includes(',') || value.includes('"'))
+            ) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+          })
+          .join(',')
+      ),
+    ].join('\n');
+
+    return csvContent;
+  }
+
+  /**
+   * Helper method: Download file to user's computer
+   */
+  private downloadFile(
+    content: string,
+    filename: string,
+    contentType: string
+  ): void {
+    const blob = new Blob([content], { type: contentType });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Clean up the URL object
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Helper method: Prepare comprehensive report data
+   */
+  private prepareReportData(): any {
+    return {
+      title: 'Financial Report',
+      dateRange: this.getDateRangeText(),
+      summary: this.summaryStats,
+      transactions: {
+        income: this.filteredIncome,
+        expenses: this.filteredExpenses,
+      },
+      charts: {
+        monthlyTrend: this.monthlyTrendChart,
+        categoryBreakdown: this.categoryBreakdownChart,
+        incomeSource: this.incomeSourceChart,
+      },
+    };
+  }
+
+  /**
+   * Helper method: Generate PDF content (simplified for demonstration)
+   */
+  private generatePDFContent(reportData: any): string {
+    return `
+FINANCIAL REPORT
+================
+
+Report Period: ${reportData.dateRange}
+Generated: ${new Date().toLocaleDateString()}
+
+SUMMARY STATISTICS
+------------------
+Total Income: $${reportData.summary.totalIncome.toFixed(2)}
+Total Expenses: $${reportData.summary.totalExpenses.toFixed(2)}
+Net Savings: $${reportData.summary.netSavings.toFixed(2)}
+Savings Rate: ${reportData.summary.savingsRate.toFixed(1)}%
+
+TRANSACTION DETAILS
+-------------------
+${reportData.transactions.income
+  .map(
+    (income: any) =>
+      `${income.date.toLocaleDateString()} | Income | ${income.description} | ${
+        income.source
+      } | $${income.amount.toFixed(2)}`
+  )
+  .join('\n')}
+
+${reportData.transactions.expenses
+  .map(
+    (expense: any) =>
+      `${expense.date.toLocaleDateString()} | Expense | ${
+        expense.description
+      } | ${expense.category} | -$${expense.amount.toFixed(2)}`
+  )
+  .join('\n')}
+
+---
+Report generated by Budget Buddy
+`;
+  }
+
+  /**
+   * Helper method: Prepare content for printing
+   */
+  private preparePrintContent(): string {
+    const reportData = this.prepareReportData();
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Financial Report - Budget Buddy</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; }
+    .summary { margin: 20px 0; }
+    .summary-item { display: inline-block; margin: 10px 20px; padding: 10px; border: 1px solid #ccc; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f5f5f5; }
+    .positive { color: green; }
+    .negative { color: red; }
+    @media print { body { margin: 0; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Financial Report</h1>
+    <p>Period: ${reportData.dateRange}</p>
+    <p>Generated: ${new Date().toLocaleDateString()}</p>
+  </div>
+  
+  <div class="summary">
+    <h2>Summary Statistics</h2>
+    <div class="summary-item">
+      <strong>Total Income</strong><br>
+      $${reportData.summary.totalIncome.toFixed(2)}
+    </div>
+    <div class="summary-item">
+      <strong>Total Expenses</strong><br>
+      $${reportData.summary.totalExpenses.toFixed(2)}
+    </div>
+    <div class="summary-item">
+      <strong>Net Savings</strong><br>
+      <span class="${
+        reportData.summary.netSavings >= 0 ? 'positive' : 'negative'
+      }">
+        $${reportData.summary.netSavings.toFixed(2)}
+      </span>
+    </div>
+  </div>
+  
+  <h2>Transaction Details</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Category</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${reportData.transactions.income
+        .map(
+          (income: any) => `
+        <tr>
+          <td>${income.date.toLocaleDateString()}</td>
+          <td>Income</td>
+          <td>${income.description}</td>
+          <td>${income.source}</td>
+          <td class="positive">$${income.amount.toFixed(2)}</td>
+        </tr>
+      `
+        )
+        .join('')}
+      ${reportData.transactions.expenses
+        .map(
+          (expense: any) => `
+        <tr>
+          <td>${expense.date.toLocaleDateString()}</td>
+          <td>Expense</td>
+          <td>${expense.description}</td>
+          <td>${expense.category}</td>
+          <td class="negative">-$${expense.amount.toFixed(2)}</td>
+        </tr>
+      `
+        )
+        .join('')}
+    </tbody>
+  </table>
+</body>
+</html>`;
+  }
+
+  /**
+   * Helper method: Prepare data for sharing
+   */
+  private prepareShareData(): any {
+    return {
+      summary: `My financial summary: Income $${this.summaryStats.totalIncome.toFixed(
+        2
+      )}, Expenses $${this.summaryStats.totalExpenses.toFixed(
+        2
+      )}, Savings Rate ${this.summaryStats.savingsRate.toFixed(1)}%`,
+      url: window.location.href,
+    };
+  }
+
+  /**
+   * Helper method: Fallback sharing for desktop browsers
+   */
+  private fallbackShare(shareData: any): void {
+    // Copy summary to clipboard
+    navigator.clipboard
+      .writeText(shareData.summary)
+      .then(() => {
+        this.showSuccessMessage('Financial summary copied to clipboard!');
+      })
+      .catch(() => {
+        // If clipboard fails, show the data in an alert
+        alert(`Financial Summary:\n\n${shareData.summary}`);
+      });
+  }
+
+  /**
+   * Helper method: Get readable date range text
+   */
+  private getDateRangeText(): string {
+    switch (this.selectedTimeRange) {
+      case 'last30days':
+        return 'Last 30 Days';
+      case 'last3months':
+        return 'Last 3 Months';
+      case 'last6months':
+        return 'Last 6 Months';
+      case 'lastyear':
+        return 'Last Year';
+      case 'alltime':
+        return 'All Time';
+      default:
+        return 'Custom Range';
+    }
+  }
+
+  /**
+   * Helper method: Show success message to user
+   */
+  private showSuccessMessage(message: string): void {
+    // In a real app, you might use a toast notification service
+    // For now, we'll use a simple alert
+    alert(`✅ ${message}`);
+  }
+
+  /**
+   * Helper method: Show error message to user
+   */
+  private showErrorMessage(message: string): void {
+    // In a real app, you might use a toast notification service
+    alert(`❌ ${message}`);
+  }
+
+  /**
+   * Extract unique categories from expense data for the filter dropdown
+   * This builds the list of available categories for filtering
    */
   private extractCategories(): void {
     // Get unique categories from all expenses
-    const categories = new Set(
-      this.allExpenses.map((expense) => expense.category)
+    const uniqueCategories = [
+      ...new Set(this.allExpenses.map((expense) => expense.category)),
+    ];
+
+    // Add 'all' option at the beginning for showing all categories
+    this.availableCategories = ['all', ...uniqueCategories.sort()];
+
+    console.log(
+      '📂 Extracted categories for filtering:',
+      this.availableCategories
     );
 
-    // Convert to array and add 'all' option at the beginning
-    this.availableCategories = ['all', ...Array.from(categories)];
-
-    console.log('📋 Available categories extracted:', this.availableCategories);
+    // If no category is selected yet, default to 'all'
+    if (!this.selectedCategory) {
+      this.selectedCategory = 'all';
+    }
   }
 }
