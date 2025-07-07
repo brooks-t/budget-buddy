@@ -104,6 +104,62 @@
   }
 }
 
+/* Enhanced Analytics Card Styles */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.analytics-card {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  color: white;
+  border: none;
+  position: relative;
+  overflow: hidden;
+
+  /* Add subtle background pattern */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+  }
+}
+
+.analytics-content {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.analytics-item {
+  text-align: center;
+
+  .analytics-label {
+    display: block;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .analytics-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+}
+
 /* Add New Expense Form Section */
 .add-expense-section {
   margin-bottom: 2rem;
@@ -270,6 +326,13 @@
   border-bottom: 1px solid #edf2f7;
   transition: all 0.3s ease;
   position: relative;
+
+  /* Selected state styling */
+  &.selected {
+    background: rgba(102, 126, 234, 0.05);
+    border-left: 4px solid #667eea;
+    transform: translateX(8px);
+  }
 
   /* Hover effect for expense items */
   &:hover {
@@ -465,6 +528,217 @@
   animation: slideOutUp 0.3s ease-in forwards;
 }
 
+/* Export Actions Section */
+.export-section {
+  margin-bottom: 2rem;
+
+  .section-header {
+    margin-bottom: 1.5rem;
+    text-align: center;
+
+    h3 {
+      margin: 0 0 0.5rem 0;
+      color: #2d3748;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0;
+      color: #718096;
+      font-size: 1rem;
+    }
+  }
+}
+
+.export-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #cbd5e0;
+  }
+
+  &:active {
+    transform: translateY(-2px);
+  }
+
+  /* Color variations for different export types */
+  &.csv-btn:hover {
+    border-color: #48bb78;
+    background: rgba(72, 187, 120, 0.05);
+  }
+
+  &.bulk-delete-btn:hover {
+    border-color: #f56565;
+    background: rgba(245, 101, 101, 0.05);
+  }
+}
+
+.export-icon {
+  font-size: 2rem;
+  padding: 0.75rem;
+  background: #f7fafc;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.export-content {
+  flex: 1;
+
+  h4 {
+    margin: 0 0 0.5rem 0;
+    color: #2d3748;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    color: #718096;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+}
+
+/* Bulk Actions Container */
+.bulk-actions {
+  grid-column: 1 / -1; /* Span full width */
+
+  .export-btn {
+    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+    border-color: #f56565;
+
+    &:hover {
+      background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+      color: white;
+
+      .export-content h4,
+      .export-content p {
+        color: white;
+      }
+
+      .export-icon {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
+}
+
+/* Enhanced List Header */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+
+  h2 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+}
+
+.list-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.expense-count {
+  color: #718096;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.btn-outline {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #4a5568;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+  }
+}
+
+/* Quick Filters Section */
+.quick-filters {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quick-filter-label {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.9rem;
+  margin-right: 0.5rem;
+}
+
+.quick-filter-btn {
+  padding: 0.5rem 1rem;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  color: #4a5568;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+    transform: translateY(-2px);
+  }
+
+  &.active {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  }
+}
+
+/* Empty Icon Styling */
+.empty-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
+}
+
 /* Responsive Design for Tablets */
 @media (max-width: 768px) {
   .expenses-container {
@@ -518,6 +792,45 @@
     margin-left: 0;
     align-self: flex-end;
   }
+
+  .analytics-content {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .export-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .quick-filters {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .expense-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+
+    &:hover,
+    &.selected {
+      transform: none;
+      border-left: none;
+      background: #f7fafc;
+    }
+  }
+
+  .expense-selection {
+    margin-right: 0;
+    align-self: flex-start;
+  }
 }
 
 /* Responsive Design for Mobile */
@@ -549,5 +862,23 @@
   .btn-delete {
     padding: 0.5rem;
     font-size: 1rem;
+  }
+
+  .analytics-item .analytics-value {
+    font-size: 1.2rem;
+  }
+
+  .export-btn {
+    padding: 1rem;
+  }
+
+  .export-icon {
+    font-size: 1.5rem;
+    padding: 0.5rem;
+  }
+
+  .quick-filter-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
   }
 }

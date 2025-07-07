@@ -1,23 +1,77 @@
-<!-- Expenses Template - Demonstrates Angular forms and data management -->
+<!-- Enhanced Expenses Template - Now with enterprise features -->
 <div class="expenses-container">
 
   <!-- Page Header -->
   <header class="page-header">
-    <h1>Expense Tracking</h1>
-    <p>Manage and categorize your spending to stay on budget.</p>
+    <h1>Expense Management</h1>
+    <p>Advanced expense tracking with analytics, export, and bulk operations.</p>
   </header>
 
-  <!-- Expense Summary Card -->
+  <!-- Enhanced Summary Section with Analytics -->
   <section class="summary-section">
-    <div class="card summary-card">
-      <div class="summary-content">
-        <div class="summary-item">
-          <span class="summary-label">Total Expenses</span>
-          <span class="summary-amount">{{ totalExpenses | currency }}</span>
+    <div class="summary-grid">
+
+      <!-- Total Expenses Card -->
+      <div class="card summary-card">
+        <div class="summary-content">
+          <div class="summary-item">
+            <span class="summary-label">Total Expenses</span>
+            <span class="summary-amount">{{ totalExpenses | currency }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Transactions</span>
+            <span class="summary-count">{{ filteredExpenses.length }}</span>
+          </div>
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Transactions</span>
-          <span class="summary-count">{{ filteredExpenses.length }}</span>
+      </div>
+
+      <!-- Analytics Card -->
+      <div class="card analytics-card">
+        <div class="analytics-content">
+          <div class="analytics-item">
+            <span class="analytics-label">Top Category</span>
+            <span class="analytics-value">{{ topSpendingCategory }}</span>
+          </div>
+          <div class="analytics-item">
+            <span class="analytics-label">Average Amount</span>
+            <span class="analytics-value">{{ averageExpenseAmount | currency }}</span>
+          </div>
+          <div class="analytics-item">
+            <span class="analytics-label">This Month</span>
+            <span class="analytics-value">{{ thisMonthSpending | currency }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- NEW: Export Actions Section -->
+  <section class="export-section" *ngIf="filteredExpenses.length > 0">
+    <div class="card">
+      <div class="section-header">
+        <h3>🚀 Export & Actions</h3>
+        <p>Professional data management tools</p>
+      </div>
+
+      <div class="export-actions">
+        <button class="export-btn csv-btn" (click)="exportExpenseReport()">
+          <span class="export-icon">📊</span>
+          <div class="export-content">
+            <h4>Export to CSV</h4>
+            <p>Download for spreadsheet analysis</p>
+          </div>
+        </button>
+
+        <!-- Bulk Actions (shown when expenses are selected) -->
+        <div class="bulk-actions" *ngIf="showBulkActions">
+          <button class="export-btn bulk-delete-btn" (click)="onBulkDelete()">
+            <span class="export-icon">🗑️</span>
+            <div class="export-content">
+              <h4>Delete Selected ({{ selectedExpenses.length }})</h4>
+              <p>Remove multiple expenses at once</p>
+            </div>
+          </button>
         </div>
       </div>
     </div>
@@ -28,7 +82,6 @@
     <div class="card">
       <h2>Add New Expense</h2>
 
-      <!-- Template-driven form using ngModel for two-way data binding -->
       <form class="expense-form" (ngSubmit)="addExpense()" #expenseForm="ngForm">
 
         <!-- Description Input -->
@@ -37,8 +90,6 @@
           <input type="text" id="description" name="description" class="form-control"
             placeholder="e.g., Grocery shopping, Coffee, Gas" [(ngModel)]="newExpense.description" required
             #description="ngModel">
-
-          <!-- Validation message for description -->
           <div class="error-message" *ngIf="description.invalid && description.touched">
             Description is required
           </div>
@@ -49,8 +100,6 @@
           <label for="amount">Amount ($)</label>
           <input type="number" id="amount" name="amount" class="form-control" placeholder="0.00" step="0.01" min="0.01"
             [(ngModel)]="newExpense.amount" required #amount="ngModel">
-
-          <!-- Validation message for amount -->
           <div class="error-message" *ngIf="amount.invalid && amount.touched">
             Please enter a valid amount (greater than $0.00)
           </div>
@@ -62,32 +111,25 @@
           <select id="category" name="category" class="form-control" [(ngModel)]="newExpense.category" required
             #category="ngModel">
             <option value="">Choose a category...</option>
-            <!-- Loop through available categories -->
-            <option *ngFor="let cat of expenseCategories" [value]="cat">
-              {{ cat }}
-            </option>
+            <option *ngFor="let cat of expenseCategories" [value]="cat">{{ cat }}</option>
           </select>
-
-          <!-- Validation message for category -->
           <div class="error-message" *ngIf="category.invalid && category.touched">
             Please select a category
           </div>
         </div>
 
-        <!-- Date Input - UPDATED: Added max attribute to prevent future dates -->
+        <!-- Date Input -->
         <div class="form-group">
           <label for="date">Date</label>
           <input type="date" id="date" name="date" class="form-control" [(ngModel)]="newExpense.date" [max]="maxDate"
             required #date="ngModel">
-
-          <!-- UPDATED: Enhanced validation message to handle future date restriction -->
           <div class="error-message" *ngIf="date.invalid && date.touched">
             <span *ngIf="date.errors?.['required']">Please select a date</span>
             <span *ngIf="date.errors?.['max']">Date cannot be in the future</span>
           </div>
         </div>
 
-        <!-- Success Message - Now appears right in the form where user is focused -->
+        <!-- Success Message -->
         <div class="form-success-message" *ngIf="showSuccessMessage">
           <div class="success-content">
             <span class="success-icon">✅</span>
@@ -100,12 +142,9 @@
 
         <!-- Form Action Buttons -->
         <div class="form-actions">
-          <!-- Submit button - disabled if form is invalid -->
           <button type="submit" class="btn btn-primary" [disabled]="expenseForm.invalid">
             <span>💾</span> Add Expense
           </button>
-
-          <!-- Reset button -->
           <button type="button" class="btn btn-secondary" (click)="resetForm()">
             <span>🔄</span> Clear Form
           </button>
@@ -114,10 +153,10 @@
     </div>
   </section>
 
-  <!-- Filters and Search Section -->
+  <!-- Enhanced Filters Section -->
   <section class="filters-section">
     <div class="card">
-      <h2>Filter Expenses</h2>
+      <h2>🔍 Filter & Search Expenses</h2>
 
       <div class="filters-row">
         <!-- Search Input -->
@@ -132,24 +171,50 @@
           <label for="categoryFilter">Filter by Category</label>
           <select id="categoryFilter" class="form-control" [(ngModel)]="selectedCategory">
             <option value="All">All Categories</option>
-            <option *ngFor="let cat of expenseCategories" [value]="cat">
-              {{ cat }}
-            </option>
+            <option *ngFor="let cat of expenseCategories" [value]="cat">{{ cat }}</option>
           </select>
         </div>
+      </div>
+
+      <!-- Quick Category Filters -->
+      <div class="quick-filters" *ngIf="filteredExpenses.length > 0">
+        <span class="quick-filter-label">Quick Filters:</span>
+        <button *ngFor="let cat of expenseCategories" class="quick-filter-btn" [class.active]="selectedCategory === cat"
+          (click)="onQuickCategoryFilter(cat)">
+          {{ cat }}
+        </button>
+        <button class="quick-filter-btn" [class.active]="selectedCategory === 'All'"
+          (click)="onQuickCategoryFilter('All')">
+          Show All
+        </button>
       </div>
     </div>
   </section>
 
-  <!-- Expenses List Section -->
+  <!-- Enhanced Expenses List Section -->
   <section class="expenses-list-section">
     <div class="card">
-      <h2>Your Expenses</h2>
+      <div class="list-header">
+        <h2>Your Expenses</h2>
+        <div class="list-controls" *ngIf="filteredExpenses.length > 0">
+          <span class="expense-count">{{ filteredExpenses.length }} expense(s)</span>
+          <button class="btn btn-outline" *ngIf="selectedExpenses.length > 0"
+            (click)="selectedExpenses = []; showBulkActions = false">
+            Clear Selection
+          </button>
+        </div>
+      </div>
 
-      <!-- Show expenses if any exist -->
+      <!-- Enhanced Expenses List with Bulk Selection -->
       <div class="expenses-list" *ngIf="filteredExpenses.length > 0">
-        <!-- Loop through filtered expenses -->
-        <div class="expense-item" *ngFor="let expense of filteredExpenses">
+        <div class="expense-item" *ngFor="let expense of filteredExpenses"
+          [class.selected]="selectedExpenses.includes(expense.id)">
+
+          <!-- NEW: Bulk Selection Checkbox -->
+          <div class="expense-selection">
+            <input type="checkbox" [checked]="selectedExpenses.includes(expense.id)"
+              (change)="onToggleExpenseSelection(expense.id)" class="selection-checkbox">
+          </div>
 
           <!-- Expense Details -->
           <div class="expense-info">
@@ -160,7 +225,6 @@
                 {{ expense.category }}
               </span>
             </div>
-
             <div class="expense-meta">
               <span class="expense-date">{{ expense.date | date:'mediumDate' }}</span>
               <span class="expense-amount">{{ expense.amount | currency }}</span>
@@ -176,18 +240,21 @@
         </div>
       </div>
 
-      <!-- Show message when no expenses match filters -->
+      <!-- Filter Results Messages -->
       <div class="no-expenses" *ngIf="filteredExpenses.length === 0 && expenses.length > 0">
-        <p>No expenses match your current filters.</p>
+        <span class="empty-icon">🔍</span>
+        <h3>No expenses match your filters</h3>
+        <p>Try adjusting your search term or category filter.</p>
         <button class="btn btn-secondary" (click)="searchTerm = ''; selectedCategory = 'All'">
           Clear Filters
         </button>
       </div>
 
-      <!-- Show message when no expenses exist at all -->
+      <!-- Empty State -->
       <div class="no-expenses" *ngIf="expenses.length === 0">
-        <p>You haven't added any expenses yet.</p>
-        <p>Use the form above to track your first expense!</p>
+        <span class="empty-icon">💳</span>
+        <h3>No expenses recorded yet</h3>
+        <p>Start tracking your expenses using the form above!</p>
       </div>
     </div>
   </section>
