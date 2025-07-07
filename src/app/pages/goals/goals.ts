@@ -89,6 +89,73 @@ export class Goals implements OnInit, OnDestroy {
       .length;
   }
 
+  // Smart recommendations based on spending patterns
+  get recommendedGoals(): {
+    category: string;
+    suggestedLimit: number;
+    reason: string;
+  }[] {
+    // Analyze spending patterns and suggest budget limits
+    const recommendations = this.expenseCategories
+      .filter(
+        (category) =>
+          !this.budgetGoals.some(
+            (goal) => goal.category === category && goal.isActive
+          )
+      )
+      .map((category) => {
+        const categoryExpenses = this.getRecentExpensesForCategory(category);
+        const averageSpending =
+          this.calculateAverageMonthlySpending(categoryExpenses);
+
+        return {
+          category,
+          suggestedLimit: Math.ceil(averageSpending * 1.1), // 10% buffer
+          reason: `Based on your average ${category.toLowerCase()} spending`,
+        };
+      })
+      .filter((rec) => rec.suggestedLimit > 0)
+      .sort((a, b) => b.suggestedLimit - a.suggestedLimit);
+
+    return recommendations.slice(0, 3); // Top 3 recommendations
+  }
+
+  // Goal performance insights
+  get goalInsights(): {
+    type: 'success' | 'warning' | 'danger';
+    message: string;
+  }[] {
+    const insights: {
+      type: 'success' | 'warning' | 'danger';
+      message: string;
+    }[] = [];
+
+    this.budgetProgress.forEach((progress) => {
+      if (progress.isOverBudget) {
+        insights.push({
+          type: 'danger',
+          message: `You're ${Math.round(
+            progress.percentageUsed - 100
+          )}% over budget for ${progress.category}`,
+        });
+      } else if (progress.percentageUsed >= 80) {
+        insights.push({
+          type: 'warning',
+          message: `You're approaching your ${
+            progress.category
+          } budget limit (${Math.round(progress.percentageUsed)}%)`,
+        });
+      } else if (progress.percentageUsed <= 50 && progress.currentSpent > 0) {
+        insights.push({
+          type: 'success',
+          message: `Great job staying under budget for ${progress.category}!`,
+        });
+      }
+    });
+
+    return insights;
+  }
+
   constructor(private financialDataService: FinancialData) {
     console.log('Goals component initialized');
   }
@@ -192,7 +259,63 @@ export class Goals implements OnInit, OnDestroy {
   }
 
   /**
-   * Show success message with auto-hide
+   * Quick goal setup for common categories
+   * This allows users to automatically set up budget goals with one click
+   */
+  setupQuickGoal(
+    category: string,
+    limitType: 'conservative' | 'moderate' | 'flexible'
+  ): void {
+    console.log(
+      `🔄 Setting up quick goal for ${category} with ${limitType} limit...`
+    );
+
+    try {
+      // Get recent expenses for this category to calculate a smart limit
+      const categoryExpenses = this.getRecentExpensesForCategory(category);
+      const averageSpending =
+        this.calculateAverageMonthlySpending(categoryExpenses);
+
+      // Calculate suggested limit based on the selected type
+      let multiplier = 1.0;
+      switch (limitType) {
+        case 'conservative':
+          multiplier = 0.8; // 20% less than average (strict budget)
+          break;
+        case 'moderate':
+          multiplier = 1.0; // Same as average (balanced approach)
+          break;
+        case 'flexible':
+          multiplier = 1.3; // 30% more than average (relaxed budget)
+          break;
+      }
+
+      // Ensure minimum budget of $50
+      const suggestedLimit = Math.max(
+        50,
+        Math.ceil(averageSpending * multiplier)
+      );
+
+      // Use the existing service to add the budget goal
+      this.financialDataService.addBudgetGoal({
+        category,
+        monthlyLimit: suggestedLimit,
+        isActive: true,
+      });
+
+      // Show success message with details
+      this.showSuccessIndicator();
+      console.log(
+        `✅ Quick goal created: ${category} - $${suggestedLimit} (${limitType})`
+      );
+    } catch (error) {
+      console.error('❌ Error setting up quick goal:', error);
+      this.showErrorMessage('Failed to set up quick goal. Please try again.');
+    }
+  }
+
+  /**
+   * Enhanced success message that shows the specific goal details
    */
   private showSuccessIndicator(): void {
     this.successMessage = '✅ Budget goal added successfully!';
@@ -259,5 +382,31 @@ export class Goals implements OnInit, OnDestroy {
       Other: '#a0aec0',
     };
     return colors[category] || '#a0aec0';
+  }
+
+  // Helper methods for calculations
+  private getRecentExpensesForCategory(category: string): any[] {
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+    return this.financialDataService
+      .getCurrentExpenses()
+      .filter(
+        (expense) =>
+          expense.category === category &&
+          new Date(expense.date) >= threeMonthsAgo
+      );
+  }
+
+  private calculateAverageMonthlySpending(expenses: any[]): number {
+    if (expenses.length === 0) return 0;
+
+    const totalSpending = expenses.reduce(
+      (sum, expense) => sum + expense.amount,
+      0
+    );
+    const monthsOfData = Math.max(1, Math.ceil(expenses.length / 10)); // Rough estimate
+
+    return totalSpending / monthsOfData;
   }
 }

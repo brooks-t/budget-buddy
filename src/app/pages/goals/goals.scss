@@ -627,17 +627,54 @@
 /* Empty State Messages */
 .empty-state {
   margin-bottom: 2rem;
+
+  .card {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border: 2px dashed #cbd5e0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+
+    /* Add subtle animation */
+    &::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(102, 126, 234, 0.03),
+        transparent
+      );
+      animation: shimmer 3s infinite;
+    }
+  }
+}
+
+/* Shimmer animation for empty states */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
 }
 
 .empty-content {
-  text-align: center;
+  position: relative;
+  z-index: 1;
   padding: 3rem 2rem;
-  color: #718096;
 
   .empty-icon {
     font-size: 4rem;
     display: block;
     margin-bottom: 1.5rem;
+    opacity: 0.6;
+    animation: float 3s ease-in-out infinite;
   }
 
   h3 {
@@ -648,6 +685,7 @@
   }
 
   p {
+    color: #718096;
     font-size: 1.1rem;
     margin-bottom: 1rem;
     line-height: 1.6;
@@ -658,110 +696,419 @@
   }
 }
 
-/* Animation for success message */
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-    max-height: 0;
+/* Float animation for icons */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
   }
-  to {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* NEW: Enhanced Smart Recommendations Section */
+.recommendations-section {
+  margin-bottom: 2rem;
+}
+
+.recommendations-card {
+  background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+  border: 2px solid #bee3f8;
+  position: relative;
+  overflow: hidden;
+
+  /* Add AI sparkle effect */
+  &::before {
+    content: "✨";
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    opacity: 0.7;
+    animation: sparkle 2s infinite;
+  }
+}
+
+/* Sparkle animation for AI recommendations */
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
     opacity: 1;
-    transform: translateY(0);
-    max-height: 200px;
+    transform: scale(1.2);
   }
 }
 
-/* Responsive Design for Tablets */
-@media (max-width: 768px) {
-  .goals-container {
-    padding: 0.5rem;
+.section-header {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  h2 {
+    margin: 0 0 0.75rem 0;
+    color: #2b6cb0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
   }
 
-  .page-header h1 {
-    font-size: 2rem;
-  }
-
-  .summary-stats {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .form-actions {
-    flex-direction: column;
-
-    .btn {
-      justify-content: center;
-    }
-  }
-
-  .progress-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .amount-info {
-    text-align: left;
-  }
-
-  .progress-details {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: flex-start;
-  }
-
-  .goal-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-
-    &:hover {
-      transform: none;
-    }
-  }
-
-  .goal-actions {
-    margin-left: 0;
-    align-self: flex-end;
-  }
-}
-
-/* Responsive Design for Mobile */
-@media (max-width: 480px) {
-  .page-header h1 {
-    font-size: 1.8rem;
-  }
-
-  .summary-item {
-    .summary-count {
-      font-size: 1.5rem;
-    }
-  }
-
-  .form-control {
-    padding: 0.75rem;
-    font-size: 0.95rem;
-  }
-
-  .category-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .progress-bar-container {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .progress-percentage {
-    align-self: flex-end;
-  }
-
-  .btn-toggle,
-  .btn-delete {
-    padding: 0.5rem;
+  p {
+    margin: 0;
+    color: #4a5568;
     font-size: 1rem;
+    font-style: italic;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* Smart Recommendations Grid */
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.recommendation-item {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  /* Hover effect for recommendations */
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.15);
+    border-color: #3b82f6;
+  }
+
+  /* Add subtle gradient overlay */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+  }
+}
+
+.recommendation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.recommendation-category {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.recommendation-amount {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #2d3748;
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.recommendation-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recommendation-reason {
+  color: #4a5568;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}
+
+.btn-quick-setup {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+}
+
+/* NEW: Performance Insights Section */
+.insights-section {
+  margin-bottom: 2rem;
+}
+
+.insights-card {
+  background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
+  border: 2px solid #f6ad55;
+  position: relative;
+  overflow: hidden;
+
+  /* Add brain icon for insights */
+  &::before {
+    content: "🧠";
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    opacity: 0.8;
+  }
+}
+
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateX(8px);
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Different styling based on insight type */
+  &.insight-success {
+    border-left: 4px solid #48bb78;
+    background: rgba(72, 187, 120, 0.05);
+  }
+
+  &.insight-warning {
+    border-left: 4px solid #ed8936;
+    background: rgba(237, 131, 54, 0.05);
+  }
+
+  &.insight-danger {
+    border-left: 4px solid #f56565;
+    background: rgba(245, 101, 101, 0.05);
+  }
+}
+
+.insight-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.insight-content {
+  flex: 1;
+
+  p {
+    margin: 0;
+    color: #2d3748;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+}
+
+/* Enhanced Empty States */
+.empty-state {
+  margin-bottom: 2rem;
+
+  .card {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border: 2px dashed #cbd5e0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+
+    /* Add subtle animation */
+    &::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(102, 126, 234, 0.03),
+        transparent
+      );
+      animation: shimmer 3s infinite;
+    }
+  }
+}
+
+/* Shimmer animation for empty states */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+.empty-content {
+  position: relative;
+  z-index: 1;
+  padding: 3rem 2rem;
+
+  .empty-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  h3 {
+    color: #2d3748;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  p {
+    color: #718096;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+
+    &:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+}
+
+/* Float animation for icons */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 768px) {
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .recommendation-item {
+    padding: 1rem;
+  }
+
+  .recommendation-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .recommendation-amount {
+    font-size: 1.3rem;
+  }
+
+  .btn-quick-setup {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .insights-list {
+    gap: 0.75rem;
+  }
+
+  .insight-item {
+    padding: 0.75rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .section-header {
+    margin-bottom: 1.5rem;
+
+    h2 {
+      font-size: 1.3rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .recommendations-card,
+  .insights-card {
+    &::before {
+      display: none; /* Hide decorative elements on very small screens */
+    }
+  }
+
+  .empty-content {
+    padding: 2rem 1rem;
+
+    .empty-icon {
+      font-size: 3rem;
+    }
+
+    h3 {
+      font-size: 1.3rem;
+    }
+
+    p {
+      font-size: 1rem;
+    }
+  }
+
+  .recommendation-reason {
+    font-size: 0.9rem;
+  }
+
+  .btn-quick-setup {
+    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
   }
 }

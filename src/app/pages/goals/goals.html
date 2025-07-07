@@ -1,16 +1,16 @@
-<!-- Goals Template - Budget Goal Management and Progress Tracking -->
+<!-- Enhanced Goals Template - Now with AI-like recommendations and insights -->
 <div class="goals-container">
 
   <!-- Page Header -->
   <header class="page-header">
-    <h1>Budget Goals</h1>
-    <p>Set spending limits and track your progress to stay on budget.</p>
+    <h1>Smart Budget Goals</h1>
+    <p>AI-powered budget recommendations and intelligent progress tracking.</p>
   </header>
 
-  <!-- Budget Goals Summary -->
+  <!-- Enhanced Budget Goals Summary -->
   <section class="summary-section" *ngIf="budgetProgress.length > 0">
     <div class="card summary-card">
-      <h2>Budget Overview</h2>
+      <h2>Budget Intelligence Dashboard</h2>
       <div class="summary-stats">
         <div class="summary-item">
           <span class="summary-label">Active Goals</span>
@@ -23,6 +23,57 @@
         <div class="summary-item">
           <span class="summary-label">Over Budget</span>
           <span class="summary-count warning">{{ overBudgetGoalsCount }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEW: Smart Goal Recommendations Section -->
+  <section class="recommendations-section" *ngIf="recommendedGoals.length > 0">
+    <div class="card recommendations-card">
+      <div class="section-header">
+        <h2>🤖 Smart Recommendations</h2>
+        <p>AI-powered budget suggestions based on your spending patterns</p>
+      </div>
+
+      <div class="recommendations-grid">
+        <div class="recommendation-item" *ngFor="let rec of recommendedGoals">
+          <div class="recommendation-header">
+            <span class="recommendation-category" [style.background-color]="getCategoryColor(rec.category)">
+              {{ rec.category }}
+            </span>
+            <span class="recommendation-amount">${{ rec.suggestedLimit | number:'1.2-2' }}</span>
+          </div>
+          <div class="recommendation-details">
+            <p class="recommendation-reason">{{ rec.reason }}</p>
+            <button class="btn-quick-setup" (click)="setupQuickGoal(rec.category, 'moderate')"
+              title="Set up this budget goal automatically">
+              🚀 Quick Setup
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEW: Goal Performance Insights -->
+  <section class="insights-section" *ngIf="goalInsights.length > 0">
+    <div class="card insights-card">
+      <div class="section-header">
+        <h2>💡 Performance Insights</h2>
+        <p>Smart analysis of your budget performance</p>
+      </div>
+
+      <div class="insights-list">
+        <div class="insight-item" *ngFor="let insight of goalInsights" [class]="'insight-' + insight.type">
+          <div class="insight-icon">
+            <span *ngIf="insight.type === 'success'">✅</span>
+            <span *ngIf="insight.type === 'warning'">⚠️</span>
+            <span *ngIf="insight.type === 'danger'">🚨</span>
+          </div>
+          <div class="insight-content">
+            <p>{{ insight.message }}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -174,8 +225,7 @@
             </div>
 
             <div class="goal-details">
-              <!-- FIXED: Remove the manual $ since currency pipe already adds it -->
-              <span class="goal-limit">{{ goal.monthlyLimit | currency:'USD':'symbol':'1.2-2' }} per month</span>
+              <span class="goal-limit">${{ goal.monthlyLimit | number:'1.2-2' }} per month</span>
               <span class="goal-created">Created: {{ goal.createdDate | date:'mediumDate' }}</span>
             </div>
           </div>
