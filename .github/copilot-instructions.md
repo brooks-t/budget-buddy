@@ -1,6 +1,4 @@
-# GitHub Copilot Instructions for Learning Modern Angular
-
-# This Project
+# GitHub Copilot Instructions for Learning Modern Angular and building Budget Buddy
 
 Budget Buddy is a personal finance application designed to help users manage their budgets effectively. It allows users to track income, expenses, and savings goals, providing insights into their financial health.
 

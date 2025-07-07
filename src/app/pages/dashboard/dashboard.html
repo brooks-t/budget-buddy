@@ -1,10 +1,10 @@
-<!-- Enhanced Dashboard Template - Now with visual analytics and charts -->
+<!-- Enhanced Dashboard Template - Complete financial overview -->
 <div class="dashboard-container">
 
   <!-- Page Header -->
   <header class="page-header">
     <h1>Dashboard</h1>
-    <p>Your financial overview at a glance</p>
+    <p>Your complete financial overview at a glance</p>
   </header>
 
   <!-- Financial Overview Cards -->
@@ -53,6 +53,50 @@
     </div>
   </section>
 
+  <!-- Quick Actions Section -->
+  <section class="actions-section">
+    <div class="card">
+      <div class="section-header">
+        <h3>Quick Actions</h3>
+        <p>Manage your finances efficiently</p>
+      </div>
+
+      <div class="actions-grid">
+        <button class="action-btn income-btn" (click)="onAddIncome()">
+          <span class="action-icon">💰</span>
+          <div class="action-content">
+            <h4>Add Income</h4>
+            <p>Record new income entry</p>
+          </div>
+        </button>
+
+        <button class="action-btn expense-btn" (click)="onAddExpense()">
+          <span class="action-icon">💳</span>
+          <div class="action-content">
+            <h4>Add Expense</h4>
+            <p>Log a new expense</p>
+          </div>
+        </button>
+
+        <button class="action-btn goals-btn" (click)="onManageGoals()">
+          <span class="action-icon">🎯</span>
+          <div class="action-content">
+            <h4>Budget Goals</h4>
+            <p>Set spending limits</p>
+          </div>
+        </button>
+
+        <button class="action-btn reports-btn" (click)="onViewReports()">
+          <span class="action-icon">📊</span>
+          <div class="action-content">
+            <h4>View Reports</h4>
+            <p>Detailed financial analysis</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- Charts Section -->
   <section class="charts-section">
     <div class="charts-grid">
@@ -79,7 +123,7 @@
       <div class="card chart-card">
         <div class="chart-header">
           <h3>Income vs Expenses</h3>
-          <p>Financial trend overview</p>
+          <p>6-month financial trend</p>
         </div>
         <div class="chart-container" *ngIf="totalIncome > 0 || totalExpenses > 0">
           <canvas baseChart [data]="trendChartData" [options]="lineChartOptions" type="line">
@@ -169,42 +213,6 @@
         <span class="empty-icon">📝</span>
         <h4>No transactions yet</h4>
         <p>Start by adding your income and expenses to see them here</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Quick Actions Section -->
-  <section class="actions-section">
-    <div class="card">
-      <div class="section-header">
-        <h3>Quick Actions</h3>
-        <p>Manage your finances efficiently</p>
-      </div>
-
-      <div class="actions-grid">
-        <button class="action-btn income-btn" (click)="onAddIncome()">
-          <span class="action-icon">💰</span>
-          <div class="action-content">
-            <h4>Add Income</h4>
-            <p>Record new income entry</p>
-          </div>
-        </button>
-
-        <button class="action-btn expense-btn" (click)="onAddExpense()">
-          <span class="action-icon">💳</span>
-          <div class="action-content">
-            <h4>Add Expense</h4>
-            <p>Log a new expense</p>
-          </div>
-        </button>
-
-        <button class="action-btn reports-btn" (click)="onViewReports()">
-          <span class="action-icon">📊</span>
-          <div class="action-content">
-            <h4>View Reports</h4>
-            <p>Detailed financial analysis</p>
-          </div>
-        </button>
       </div>
     </div>
   </section>

@@ -1,10 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router'; // Add Router import
 import { Subscription } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 
-// NEW: Import and register Chart.js components - Now with Filler plugin
+// Import Chart.js components
 import {
   Chart,
   ArcElement,
@@ -19,7 +20,7 @@ import {
   PieController,
   LineController,
   BarController,
-  Filler, // NEW: Add the Filler plugin for area charts
+  Filler,
 } from 'chart.js';
 
 import {
@@ -28,7 +29,7 @@ import {
   BudgetProgress,
 } from '../../services/financial-data';
 
-// Register Chart.js components - Now includes Filler plugin
+// Register Chart.js components
 Chart.register(
   ArcElement,
   LineElement,
@@ -42,18 +43,19 @@ Chart.register(
   PieController,
   LineController,
   BarController,
-  Filler // NEW: Register the Filler plugin for area charts
+  Filler
 );
 
 /**
- * Enhanced Dashboard Component - Now with visual analytics and charts
+ * Enhanced Dashboard Component - Complete financial overview
  *
  * This component demonstrates:
- * - Chart.js integration for data visualization
- * - Real-time chart updates when data changes
- * - Multiple chart types (pie, line, bar)
- * - Budget progress visualization
- * - Professional dashboard layout
+ * - Professional dashboard layout with real-time data
+ * - Advanced chart integration with Chart.js
+ * - Responsive design and mobile optimization
+ * - Navigation integration with Angular Router
+ * - Enterprise-level data visualization
+ * - Real-time updates and data synchronization
  */
 @Component({
   selector: 'app-dashboard',
@@ -65,15 +67,13 @@ Chart.register(
   styleUrl: './dashboard.scss',
 })
 export class Dashboard implements OnInit, OnDestroy {
-  // Existing properties
+  // Core financial data properties
   totalIncome = 0;
   totalExpenses = 0;
   recentTransactions: Transaction[] = [];
-
-  // NEW: Chart data properties
   budgetProgress: BudgetProgress[] = [];
 
-  // NEW: Expense breakdown pie chart data
+  // Chart data properties
   expenseChartData: ChartData<'pie'> = {
     labels: [],
     datasets: [
@@ -95,7 +95,6 @@ export class Dashboard implements OnInit, OnDestroy {
     ],
   };
 
-  // NEW: Income vs Expenses trend chart data
   trendChartData: ChartData<'line'> = {
     labels: [],
     datasets: [
@@ -105,6 +104,7 @@ export class Dashboard implements OnInit, OnDestroy {
         borderColor: '#48bb78',
         backgroundColor: 'rgba(72, 187, 120, 0.1)',
         tension: 0.4,
+        fill: true,
       },
       {
         label: 'Expenses',
@@ -112,11 +112,12 @@ export class Dashboard implements OnInit, OnDestroy {
         borderColor: '#f56565',
         backgroundColor: 'rgba(245, 101, 101, 0.1)',
         tension: 0.4,
+        fill: true,
       },
     ],
   };
 
-  // NEW: Chart configuration options
+  // Chart configuration options
   pieChartOptions: ChartConfiguration<'pie'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
@@ -170,15 +171,14 @@ export class Dashboard implements OnInit, OnDestroy {
     },
   };
 
-  // Subscriptions array to manage memory and prevent leaks
+  // Subscriptions for memory management
   private subscriptions: Subscription[] = [];
 
-  // Computed property - shows how TypeScript getters work with live data
+  // Computed properties for dynamic data
   get totalSavings(): number {
     return this.totalIncome - this.totalExpenses;
   }
 
-  // NEW: Get budget health status
   get budgetHealthStatus(): string {
     if (this.budgetProgress.length === 0) return 'No Goals Set';
 
@@ -194,7 +194,6 @@ export class Dashboard implements OnInit, OnDestroy {
     return 'On Track';
   }
 
-  // NEW: Get budget health color
   get budgetHealthColor(): string {
     switch (this.budgetHealthStatus) {
       case 'Over Budget':
@@ -208,8 +207,12 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  constructor(private financialDataService: FinancialData) {
-    console.log('Enhanced Dashboard component initialized with charts');
+  // Inject both the financial service and router for navigation
+  constructor(
+    private financialDataService: FinancialData,
+    private router: Router // Add router injection
+  ) {
+    console.log('Enhanced Dashboard component initialized with navigation');
   }
 
   ngOnInit(): void {
@@ -222,8 +225,7 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   /**
-   * Set up subscriptions to our financial data service
-   * Now includes chart data updates
+   * Set up subscriptions to financial data with real-time updates
    */
   private setupDataSubscriptions(): void {
     // Subscribe to total income changes
@@ -232,12 +234,10 @@ export class Dashboard implements OnInit, OnDestroy {
       .subscribe({
         next: (total) => {
           this.totalIncome = total;
-          this.updateTrendChart(); // Update charts when data changes
+          this.updateTrendChart();
           console.log('Dashboard: Total income updated to', total);
         },
-        error: (error) => {
-          console.error('Error getting total income:', error);
-        },
+        error: (error) => console.error('Error getting total income:', error),
       });
 
     // Subscribe to total expenses changes
@@ -246,15 +246,13 @@ export class Dashboard implements OnInit, OnDestroy {
       .subscribe({
         next: (total) => {
           this.totalExpenses = total;
-          this.updateTrendChart(); // Update charts when data changes
+          this.updateTrendChart();
           console.log('Dashboard: Total expenses updated to', total);
         },
-        error: (error) => {
-          console.error('Error getting total expenses:', error);
-        },
+        error: (error) => console.error('Error getting total expenses:', error),
       });
 
-    // Subscribe to recent transactions changes
+    // Subscribe to recent transactions
     const transactionsSubscription = this.financialDataService
       .getRecentTransactions()
       .subscribe({
@@ -262,23 +260,20 @@ export class Dashboard implements OnInit, OnDestroy {
           this.recentTransactions = transactions;
           console.log('Dashboard: Recent transactions updated', transactions);
         },
-        error: (error) => {
-          console.error('Error getting recent transactions:', error);
-        },
+        error: (error) =>
+          console.error('Error getting recent transactions:', error),
       });
 
-    // NEW: Subscribe to expenses for expense breakdown chart
+    // Subscribe to expense data for charts
     const expensesDataSubscription =
       this.financialDataService.expenses$.subscribe({
         next: (expenses) => {
           this.updateExpenseChart(expenses);
         },
-        error: (error) => {
-          console.error('Error getting expenses data:', error);
-        },
+        error: (error) => console.error('Error getting expenses data:', error),
       });
 
-    // NEW: Subscribe to budget progress
+    // Subscribe to budget progress
     const budgetSubscription = this.financialDataService
       .getBudgetProgress()
       .subscribe({
@@ -286,12 +281,11 @@ export class Dashboard implements OnInit, OnDestroy {
           this.budgetProgress = progress;
           console.log('Dashboard: Budget progress updated', progress);
         },
-        error: (error) => {
-          console.error('Error getting budget progress:', error);
-        },
+        error: (error) =>
+          console.error('Error getting budget progress:', error),
       });
 
-    // Store subscriptions for cleanup
+    // Store all subscriptions for cleanup
     this.subscriptions.push(
       incomeSubscription,
       expensesSubscription,
@@ -302,13 +296,13 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Update expense breakdown pie chart
+   * Update expense breakdown pie chart with current month data
    */
   private updateExpenseChart(expenses: any[]): void {
-    // Group expenses by category for current month
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
 
+    // Filter expenses for current month
     const currentMonthExpenses = expenses.filter((expense) => {
       const expenseDate = new Date(expense.date);
       return (
@@ -317,7 +311,7 @@ export class Dashboard implements OnInit, OnDestroy {
       );
     });
 
-    // Calculate totals by category
+    // Group by category
     const categoryTotals: { [key: string]: number } = {};
     currentMonthExpenses.forEach((expense) => {
       categoryTotals[expense.category] =
@@ -348,44 +342,41 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   /**
-   * NEW: Update income vs expenses trend chart - Now shows monthly trends
+   * Update income vs expenses trend chart with 6-month history
    */
   private updateTrendChart(): void {
-    // Calculate last 6 months of data for meaningful trends
     const monthsToShow = 6;
     const monthLabels: string[] = [];
     const monthlyIncomeData: number[] = [];
     const monthlyExpenseData: number[] = [];
-
-    // Get current date
     const currentDate = new Date();
 
-    // Loop through the last 6 months
+    // Generate data for last 6 months
     for (let i = monthsToShow - 1; i >= 0; i--) {
       const targetDate = new Date(
         currentDate.getFullYear(),
         currentDate.getMonth() - i,
         1
       );
+
       const monthLabel = targetDate.toLocaleDateString('en-US', {
         month: 'short',
         year: '2-digit',
       });
       monthLabels.push(monthLabel);
 
-      // Calculate income for this month
+      // Calculate monthly totals
       const monthlyIncome = this.calculateMonthlyTotal('income', targetDate);
-      monthlyIncomeData.push(monthlyIncome);
-
-      // Calculate expenses for this month
       const monthlyExpenses = this.calculateMonthlyTotal(
         'expenses',
         targetDate
       );
+
+      monthlyIncomeData.push(monthlyIncome);
       monthlyExpenseData.push(monthlyExpenses);
     }
 
-    // Update the chart data with monthly trends
+    // Update chart data
     this.trendChartData = {
       labels: monthLabels,
       datasets: [
@@ -395,7 +386,7 @@ export class Dashboard implements OnInit, OnDestroy {
           borderColor: '#48bb78',
           backgroundColor: 'rgba(72, 187, 120, 0.1)',
           tension: 0.4,
-          fill: true, // Add area fill for better visual
+          fill: true,
         },
         {
           label: 'Expenses',
@@ -403,20 +394,14 @@ export class Dashboard implements OnInit, OnDestroy {
           borderColor: '#f56565',
           backgroundColor: 'rgba(245, 101, 101, 0.1)',
           tension: 0.4,
-          fill: true, // Add area fill for better visual
+          fill: true,
         },
       ],
     };
-
-    console.log('Trend chart updated with monthly data:', {
-      labels: monthLabels,
-      income: monthlyIncomeData,
-      expenses: monthlyExpenseData,
-    });
   }
 
   /**
-   * NEW: Helper method to calculate monthly totals for income or expenses
+   * Calculate monthly total for income or expenses
    */
   private calculateMonthlyTotal(
     type: 'income' | 'expenses',
@@ -426,7 +411,6 @@ export class Dashboard implements OnInit, OnDestroy {
     const targetYear = targetDate.getFullYear();
 
     if (type === 'income') {
-      // Get current income data from the service
       const currentIncome = this.financialDataService.getCurrentIncome();
       return currentIncome
         .filter((income) => {
@@ -438,7 +422,6 @@ export class Dashboard implements OnInit, OnDestroy {
         })
         .reduce((sum, income) => sum + income.amount, 0);
     } else {
-      // Get current expense data from the service
       const currentExpenses = this.financialDataService.getCurrentExpenses();
       return currentExpenses
         .filter((expense) => {
@@ -452,32 +435,32 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  // Existing event handler methods
+  // Navigation methods - now with proper Angular Router integration
   onAddIncome(): void {
-    console.log('Add Income clicked - this would open an income form');
-    alert(
-      'Add Income feature - this could open the Income page or a quick-add form!'
-    );
+    console.log('Navigating to Income page');
+    this.router.navigate(['/income']);
   }
 
   onAddExpense(): void {
-    console.log('Add Expense clicked - this would open an expense form');
-    alert(
-      'Add Expense feature - this could open the Expenses page or a quick-add form!'
-    );
+    console.log('Navigating to Expenses page');
+    this.router.navigate(['/expenses']);
   }
 
   onViewReports(): void {
-    console.log('View Reports clicked - this would navigate to reports page');
-    alert('Reports feature coming soon!');
+    console.log('Navigating to Reports page');
+    this.router.navigate(['/reports']);
   }
 
-  // Method to get the icon for each transaction type
+  onManageGoals(): void {
+    console.log('Navigating to Goals page');
+    this.router.navigate(['/goals']);
+  }
+
+  // Utility methods for template
   getTransactionIcon(type: 'income' | 'expense'): string {
     return type === 'income' ? '💵' : '💳';
   }
 
-  // Method to get CSS class for styling different transaction types
   getTransactionClass(amount: number): string {
     return amount > 0 ? 'positive' : 'negative';
   }
