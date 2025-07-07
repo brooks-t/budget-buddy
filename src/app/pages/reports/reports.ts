@@ -175,28 +175,7 @@ export class Reports implements OnInit, OnDestroy {
     },
   };
 
-  constructor(private financialDataService: FinancialData) {
-    console.log('Reports component initialized');
-
-    // TEMPORARY: Add this debugging code
-    console.log('Testing service access...');
-    const allIncome = this.financialDataService.getCurrentIncome();
-    const allExpenses = this.financialDataService.getCurrentExpenses();
-
-    console.log('Income data:', allIncome);
-    console.log('Expense data:', allExpenses);
-
-    // NEW: Calculate totals for comparison
-    const totalIncomeAmount = allIncome.reduce((sum, i) => sum + i.amount, 0);
-    const totalExpenseAmount = allExpenses.reduce(
-      (sum, e) => sum + e.amount,
-      0
-    );
-
-    console.log('🔢 SERVICE TOTALS (should match Dashboard):');
-    console.log('  Total Income:', totalIncomeAmount);
-    console.log('  Total Expenses:', totalExpenseAmount);
-  }
+  constructor(private financialDataService: FinancialData) {}
 
   ngOnInit(): void {
     this.loadFinancialData();
@@ -205,7 +184,7 @@ export class Reports implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
-    console.log('Reports subscriptions cleaned up');
+    console.log('Reports component cleaned up');
   }
 
   /**
@@ -215,25 +194,23 @@ export class Reports implements OnInit, OnDestroy {
     // Subscribe to income data
     const incomeSubscription = this.financialDataService.income$.subscribe({
       next: (income) => {
-        console.log('Income data loaded:', income.length, 'entries');
         this.allIncome = income;
-        this.checkAndUpdateReports(); // NEW: Check if all data is loaded
+        this.checkAndUpdateReports();
       },
       error: (error) => {
-        console.error('Error loading income data:', error);
+        console.error('Error loading income data:', error); // Keep error logs
       },
     });
 
     // Subscribe to expense data
     const expenseSubscription = this.financialDataService.expenses$.subscribe({
       next: (expenses) => {
-        console.log('Expense data loaded:', expenses.length, 'entries');
         this.allExpenses = expenses;
         this.extractCategories();
-        this.checkAndUpdateReports(); // NEW: Check if all data is loaded
+        this.checkAndUpdateReports();
       },
       error: (error) => {
-        console.error('Error loading expense data:', error);
+        console.error('Error loading expense data:', error); // Keep error logs
       },
     });
 
@@ -241,11 +218,10 @@ export class Reports implements OnInit, OnDestroy {
     const budgetSubscription = this.financialDataService.budgetGoals$.subscribe(
       {
         next: (goals) => {
-          console.log('Budget goals loaded:', goals.length, 'entries');
           this.budgetGoals = goals;
         },
         error: (error) => {
-          console.error('Error loading budget goals:', error);
+          console.error('Error loading budget goals:', error); // Keep error logs
         },
       }
     );
@@ -262,9 +238,6 @@ export class Reports implements OnInit, OnDestroy {
    */
   private checkAndUpdateReports(): void {
     if (this.allIncome.length > 0 && this.allExpenses.length > 0) {
-      console.log('All data loaded, updating reports...');
-
-      // IMPORTANT: Initialize date range AFTER data is loaded
       if (!this.customStartDate || !this.customEndDate) {
         this.initializeDateRangeFromData();
       }
@@ -303,20 +276,6 @@ export class Reports implements OnInit, OnDestroy {
 
       this.customStartDate = this.formatDateForInput(startDate);
       this.customEndDate = this.formatDateForInput(endDate);
-
-      console.log('📅 Auto-detected date range from data (with padding):');
-      console.log(
-        '  Data spans:',
-        oldestDate.toLocaleDateString(),
-        'to',
-        newestDate.toLocaleDateString()
-      );
-      console.log(
-        '  Filter set to:',
-        this.customStartDate,
-        'to',
-        this.customEndDate
-      );
     }
   }
 
@@ -332,13 +291,6 @@ export class Reports implements OnInit, OnDestroy {
 
       this.customStartDate = this.formatDateForInput(sixMonthsAgo);
       this.customEndDate = this.formatDateForInput(today);
-
-      console.log(
-        '📅 Using fallback date range:',
-        this.customStartDate,
-        'to',
-        this.customEndDate
-      );
     }
   }
 
@@ -410,8 +362,6 @@ export class Reports implements OnInit, OnDestroy {
    * This method is called when the user selects a different category filter
    */
   onCategoryChange(): void {
-    console.log('📂 Category filter changed to:', this.selectedCategory);
-
     // Update the reports when category selection changes
     this.updateReports();
   }
@@ -429,11 +379,6 @@ export class Reports implements OnInit, OnDestroy {
     // Add 'all' option at the beginning for showing all categories
     this.availableCategories = ['all', ...uniqueCategories.sort()];
 
-    console.log(
-      '📂 Extracted categories for filtering:',
-      this.availableCategories
-    );
-
     // If no category is selected yet, default to 'all'
     if (!this.selectedCategory) {
       this.selectedCategory = 'all';
@@ -444,25 +389,11 @@ export class Reports implements OnInit, OnDestroy {
    * Filter data based on selected criteria and update all charts
    */
   private updateReports(): void {
-    console.log('🔄 Starting updateReports...');
     this.filterData();
-
-    console.log('📊 After filtering:', {
-      income: this.filteredIncome.length,
-      expenses: this.filteredExpenses.length,
-      incomeTotal: this.filteredIncome.reduce((sum, i) => sum + i.amount, 0),
-      expenseTotal: this.filteredExpenses.reduce((sum, e) => sum + e.amount, 0),
-    });
 
     this.updateMonthlyTrendChart();
     this.updateCategoryBreakdownChart();
     this.updateIncomeSourceChart();
-
-    console.log('📈 Charts updated with data:', {
-      trendLabels: this.monthlyTrendChart.labels?.length,
-      categoryLabels: this.categoryBreakdownChart.labels?.length,
-      incomeLabels: this.incomeSourceChart.labels?.length,
-    });
   }
 
   /**
@@ -638,64 +569,6 @@ export class Reports implements OnInit, OnDestroy {
     const averageMonthlyExpenses = this.calculateAverageMonthly(
       this.filteredExpenses
     );
-
-    // NEW: Add detailed debugging for expense totals
-    console.log('💰 EXPENSE TOTAL COMPARISON:');
-    console.log('  All expenses count:', this.allExpenses.length);
-    console.log('  Filtered expenses count:', this.filteredExpenses.length);
-    console.log(
-      '  All expenses total:',
-      this.allExpenses.reduce((sum, e) => sum + e.amount, 0)
-    );
-    console.log('  Filtered expenses total:', totalExpenses);
-    console.log(
-      '  Date range:',
-      this.customStartDate,
-      'to',
-      this.customEndDate
-    );
-    console.log('  Selected category:', this.selectedCategory);
-
-    // Show which expenses are being filtered out
-    const excludedExpenses = this.allExpenses.filter((expense) => {
-      const expenseDate = new Date(expense.date);
-      const startDate = new Date(this.customStartDate);
-      const endDate = new Date(this.customEndDate);
-      const inDateRange = expenseDate >= startDate && expenseDate <= endDate;
-      const inCategory =
-        this.selectedCategory === 'all' ||
-        expense.category === this.selectedCategory;
-      return !(inDateRange && inCategory);
-    });
-
-    console.log('  Excluded expenses count:', excludedExpenses.length);
-    console.log(
-      '  Excluded expenses total:',
-      excludedExpenses.reduce((sum, e) => sum + e.amount, 0)
-    );
-
-    // Show sample excluded expenses
-    if (excludedExpenses.length > 0) {
-      console.log('  Sample excluded expenses:');
-      excludedExpenses.slice(0, 3).forEach((expense, index) => {
-        const expenseDate = new Date(expense.date);
-        const startDate = new Date(this.customStartDate);
-        const endDate = new Date(this.customEndDate);
-
-        console.log(`    Expense ${index + 1}:`, {
-          description: expense.description,
-          amount: expense.amount,
-          date: expense.date,
-          formattedDate: expenseDate.toLocaleDateString(),
-          category: expense.category,
-          dateType: typeof expense.date,
-          isBeforeStart: expenseDate < startDate,
-          isAfterEnd: expenseDate > endDate,
-          startDateFormatted: startDate.toLocaleDateString(),
-          endDateFormatted: endDate.toLocaleDateString(),
-        });
-      });
-    }
 
     return {
       totalIncome,
